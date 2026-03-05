@@ -21,8 +21,21 @@ export default function Header() {
         </Link>
 
         <nav className="flex items-center gap-6">
+          <Link href="/events" className="text-gray-300 hover:text-white text-sm transition">
+            Events
+          </Link>
           {user ? (
             <>
+              {(user.role === "ORGANIZER" || user.role === "ADMIN") && (
+                <>
+                  <Link href="/events/my-events" className="text-gray-300 hover:text-white text-sm transition">
+                    My Events
+                  </Link>
+                  <Link href="/events/create" className="text-gray-300 hover:text-white text-sm transition">
+                    Create Event
+                  </Link>
+                </>
+              )}
               <span className="text-gray-300 text-sm">
                 Hi, <span className="text-primary font-medium">{user.fullName}</span>
               </span>
