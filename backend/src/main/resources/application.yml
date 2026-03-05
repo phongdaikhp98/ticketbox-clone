@@ -1,14 +1,14 @@
 server:
-  port: 8080
+  port: 8083
 
 spring:
   application:
     name: ticketbox
 
   datasource:
-    url: jdbc:oracle:thin:@localhost:1521:xe
+    url: jdbc:oracle:thin:@localhost:1521/XEPDB1
     username: ticketbox
-    password: ticketbox
+    password: ticketbox123
     driver-class-name: oracle.jdbc.OracleDriver
 
   jpa:
@@ -20,6 +20,11 @@ spring:
         dialect: org.hibernate.dialect.OracleDialect
         format_sql: true
 
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
   jackson:
     serialization:
       write-dates-as-timestamps: false
@@ -27,6 +32,6 @@ spring:
 
 app:
   jwt:
-    secret: your-secret-key-here-change-in-production-must-be-at-least-256-bits
+    secret: zjwQJAc8HzQ0Jqdly8banbFfbqY5MFsRj3eJ9HN0gi8=
     expiration-ms: 86400000
     refresh-expiration-ms: 604800000
