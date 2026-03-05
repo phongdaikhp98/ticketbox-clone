@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import Header from "@/components/Header";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
@@ -72,9 +73,9 @@ function Dashboard() {
             <button className="w-full py-2 bg-zinc-700 text-gray-300 rounded-lg hover:bg-zinc-600 transition text-sm">
               My Tickets
             </button>
-            <button className="w-full py-2 bg-zinc-700 text-gray-300 rounded-lg hover:bg-zinc-600 transition text-sm">
+            <Link href="/profile" className="block w-full py-2 bg-zinc-700 text-gray-300 rounded-lg hover:bg-zinc-600 transition text-sm text-center">
               Edit Profile
-            </button>
+            </Link>
           </div>
         </div>
       </div>
