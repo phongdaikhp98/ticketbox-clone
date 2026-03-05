@@ -12,7 +12,7 @@ import { Event, PageResponse } from "@/types/event";
 
 export default function MyEventsPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute roles={["ORGANIZER", "ADMIN"]}>
       <div className="min-h-screen bg-secondary">
         <Header />
         <MyEventsList />

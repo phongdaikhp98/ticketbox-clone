@@ -9,7 +9,7 @@ import { Event, UpdateEventRequest, TicketTypeRequest, EVENT_CATEGORIES } from "
 
 export default function EditEventPage() {
   return (
-    <ProtectedRoute>
+    <ProtectedRoute roles={["ORGANIZER", "ADMIN"]}>
       <div className="min-h-screen bg-secondary">
         <Header />
         <EditEventForm />

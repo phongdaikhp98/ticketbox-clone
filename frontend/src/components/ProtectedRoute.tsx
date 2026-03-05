@@ -4,7 +4,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+interface ProtectedRouteProps {
+  children: React.ReactNode;
+  roles?: string[];
+}
+
+export default function ProtectedRoute({ children, roles }: ProtectedRouteProps) {
   const { user, loading } = useAuth();
   const router = useRouter();
 
@@ -12,7 +17,10 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
     if (!loading && !user) {
       router.push("/login");
     }
-  }, [user, loading, router]);
+    if (!loading && user && roles && !roles.includes(user.role)) {
+      router.push("/");
+    }
+  }, [user, loading, router, roles]);
 
   if (loading) {
     return (
@@ -23,6 +31,7 @@ export default function ProtectedRoute({ children }: { children: React.ReactNode
   }
 
   if (!user) return null;
+  if (roles && !roles.includes(user.role)) return null;
 
   return <>{children}</>;
 }
