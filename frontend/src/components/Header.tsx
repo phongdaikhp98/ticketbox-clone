@@ -24,25 +24,31 @@ export default function Header() {
 
         <nav className="flex items-center gap-6">
           <Link href="/events" className="text-gray-300 hover:text-white text-sm transition">
-            Events
+            Sự kiện
           </Link>
           {user ? (
             <>
               {(user.role === "ORGANIZER" || user.role === "ADMIN") && (
                 <>
                   <Link href="/events/my-events" className="text-gray-300 hover:text-white text-sm transition">
-                    My Events
+                    Sự kiện của tôi
                   </Link>
                   <Link href="/events/create" className="text-gray-300 hover:text-white text-sm transition">
-                    Create Event
+                    Tạo sự kiện
+                  </Link>
+                  <Link href="/organizer/check-in" className="text-gray-300 hover:text-white text-sm transition">
+                    Kiểm tra vé
                   </Link>
                 </>
               )}
+              <Link href="/tickets" className="text-gray-300 hover:text-white text-sm transition">
+                Vé của tôi
+              </Link>
               <Link href="/wishlist" className="text-gray-300 hover:text-white text-sm transition">
-                Wishlist
+                Yêu thích
               </Link>
               <Link href="/orders" className="text-gray-300 hover:text-white text-sm transition">
-                My Orders
+                Đơn hàng của tôi
               </Link>
               <Link href="/cart" className="relative text-gray-300 hover:text-white transition">
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,28 +61,28 @@ export default function Header() {
                 )}
               </Link>
               <span className="text-gray-300 text-sm">
-                Hi, <span className="text-primary font-medium">{user.fullName}</span>
+                Xin chào, <span className="text-primary font-medium">{user.fullName}</span>
               </span>
               <span className="text-zinc-500 text-xs px-2 py-1 bg-zinc-700 rounded">
-                {user.role}
+                {user.role === "ORGANIZER" ? "Tổ chức" : user.role === "ADMIN" ? "Quản trị" : "Khách"}
               </span>
               <button
                 onClick={handleLogout}
                 className="text-gray-400 hover:text-white text-sm transition"
               >
-                Logout
+                Đăng xuất
               </button>
             </>
           ) : (
             <>
               <Link href="/login" className="text-gray-300 hover:text-white text-sm transition">
-                Sign In
+                Đăng nhập
               </Link>
               <Link
                 href="/register"
                 className="px-4 py-2 bg-primary text-white text-sm rounded-lg hover:bg-green-600 transition"
               >
-                Sign Up
+                Đăng ký
               </Link>
             </>
           )}

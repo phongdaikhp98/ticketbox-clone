@@ -45,15 +45,15 @@ export default function OrdersPage() {
       <div className="min-h-screen bg-secondary">
         <Header />
         <main className="max-w-4xl mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold text-white mb-6">My Orders</h1>
+          <h1 className="text-2xl font-bold text-white mb-6">Đơn hàng của tôi</h1>
 
           {loading ? (
             <div className="text-center text-gray-400 py-12">Loading...</div>
           ) : !orders || orders.content.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-400 mb-4">No orders yet</p>
+              <p className="text-gray-400 mb-4">Bạn chưa có đơn hàng nào</p>
               <Link href="/events" className="text-primary hover:text-green-400 transition">
-                Browse Events
+                Xem các sự kiện
               </Link>
             </div>
           ) : (
@@ -71,7 +71,7 @@ export default function OrdersPage() {
                   >
                     <div className="flex justify-between items-start mb-3">
                       <div>
-                        <p className="text-white font-medium">Order #{order.id}</p>
+                        <p className="text-white font-medium">Đơn hàng #{order.id}</p>
                         <p className="text-gray-500 text-xs">{formatDate(order.createdDate)}</p>
                       </div>
                       <div className="text-right">

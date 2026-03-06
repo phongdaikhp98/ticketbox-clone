@@ -112,7 +112,7 @@ export default function CartPage() {
       <div className="min-h-screen bg-secondary">
         <Header />
         <main className="max-w-4xl mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold text-white mb-6">Shopping Cart</h1>
+          <h1 className="text-2xl font-bold text-white mb-6">Giỏ hàng</h1>
 
           {error && (
             <div className="bg-red-500/10 border border-red-500 rounded-lg p-3 text-red-400 text-sm mb-4">
@@ -124,12 +124,12 @@ export default function CartPage() {
             <div className="text-center text-gray-400 py-12">Loading...</div>
           ) : !cart || cart.items.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-400 mb-4">Your cart is empty</p>
+              <p className="text-gray-400 mb-4">Giỏ hàng của bạn trống</p>
               <Link
                 href="/events"
                 className="text-primary hover:text-green-400 transition"
               >
-                Browse Events
+                Tiếp tục mua sắm
               </Link>
             </div>
           ) : (
@@ -207,6 +207,7 @@ export default function CartPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
+                    <span className="sr-only">Xóa</span>
                   </div>
                 </div>
               ))}
@@ -225,13 +226,13 @@ export default function CartPage() {
                     onClick={handleClearCart}
                     className="px-4 py-2 border border-zinc-600 text-gray-400 rounded hover:border-red-500 hover:text-red-400 transition"
                   >
-                    Clear Cart
+                    Xóa giỏ hàng
                   </button>
                   <button
                     onClick={() => router.push("/checkout")}
                     className="flex-1 px-6 py-2 bg-primary text-white rounded hover:bg-green-600 transition font-medium"
                   >
-                    Proceed to Checkout
+                    Thanh toán
                   </button>
                 </div>
               </div>

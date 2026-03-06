@@ -90,7 +90,7 @@ export default function OrderDetailPage() {
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h1 className="text-xl font-bold text-white">
-                      Order #{order.id}
+                      Đơn hàng #{order.id}
                     </h1>
                     <p className="text-gray-500 text-sm">
                       {formatDate(order.createdDate)}
@@ -107,7 +107,7 @@ export default function OrderDetailPage() {
 
                 <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                   <div>
-                    <span className="text-gray-500">Payment Method</span>
+                    <span className="text-gray-500">Phương thức thanh toán</span>
                     <p className="text-white">
                       {order.paymentMethod
                         ? PAYMENT_METHODS[order.paymentMethod] || order.paymentMethod
@@ -115,14 +115,14 @@ export default function OrderDetailPage() {
                     </p>
                   </div>
                   <div>
-                    <span className="text-gray-500">Payment Status</span>
+                    <span className="text-gray-500">Trạng thái thanh toán</span>
                     <p className="text-white">{order.paymentStatus}</p>
                   </div>
                 </div>
               </div>
 
               <div className="bg-zinc-800 rounded-lg p-6">
-                <h2 className="text-white font-semibold mb-4">Order Items</h2>
+                <h2 className="text-white font-semibold mb-4">Chi tiết đơn hàng</h2>
                 <div className="space-y-3">
                   {order.orderItems.map((item) => (
                     <div
@@ -167,7 +167,7 @@ export default function OrderDetailPage() {
                 </div>
 
                 <div className="border-t border-zinc-700 mt-4 pt-4 flex justify-between">
-                  <span className="text-gray-400 font-medium">Total</span>
+                  <span className="text-gray-400 font-medium">Tổng cộng</span>
                   <span className="text-2xl font-bold text-primary">
                     {formatPrice(order.totalAmount)}
                   </span>
@@ -186,7 +186,7 @@ export default function OrderDetailPage() {
                     disabled={paying}
                     className="w-full py-3 bg-primary text-white rounded-lg hover:bg-green-600 transition font-medium disabled:opacity-50"
                   >
-                    {paying ? "Processing Payment..." : "Pay Now"}
+                    {paying ? "Đang xử lý..." : "Thanh toán"}
                   </button>
                 </div>
               )}

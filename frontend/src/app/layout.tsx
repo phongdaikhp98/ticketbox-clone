@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "Ticketbox - Mua vé sự kiện trực tuyến",
@@ -15,9 +16,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="vi">
-      <body>
+      <body className="flex flex-col min-h-screen">
         <AuthProvider>
-          <CartProvider>{children}</CartProvider>
+          <CartProvider>
+            <div className="flex-1">{children}</div>
+            <Footer />
+          </CartProvider>
         </AuthProvider>
       </body>
     </html>

@@ -66,14 +66,14 @@ export default function CheckoutPage() {
       <div className="min-h-screen bg-secondary">
         <Header />
         <main className="max-w-2xl mx-auto px-4 py-8">
-          <h1 className="text-2xl font-bold text-white mb-6">Checkout</h1>
+          <h1 className="text-2xl font-bold text-white mb-6">Thanh toán</h1>
 
           {loading ? (
             <div className="text-center text-gray-400 py-12">Loading...</div>
           ) : cart ? (
             <div className="space-y-6">
               <div className="bg-zinc-800 rounded-lg p-6">
-                <h2 className="text-white font-semibold mb-4">Order Summary</h2>
+                <h2 className="text-white font-semibold mb-4">Tóm tắt đơn hàng</h2>
                 <div className="space-y-3">
                   {cart.items.map((item) => (
                     <div key={item.id} className="flex justify-between text-sm">
@@ -89,7 +89,7 @@ export default function CheckoutPage() {
                   ))}
                 </div>
                 <div className="border-t border-zinc-700 mt-4 pt-4 flex justify-between">
-                  <span className="text-gray-400 font-medium">Total</span>
+                  <span className="text-gray-400 font-medium">Tổng cộng</span>
                   <span className="text-xl font-bold text-primary">
                     {formatPrice(cart.totalAmount)}
                   </span>
@@ -97,7 +97,7 @@ export default function CheckoutPage() {
               </div>
 
               <div className="bg-zinc-800 rounded-lg p-6">
-                <h2 className="text-white font-semibold mb-4">Payment Method</h2>
+                <h2 className="text-white font-semibold mb-4">Chọn phương thức thanh toán</h2>
                 <div className="space-y-2">
                   {Object.entries(PAYMENT_METHODS).map(([value, label]) => (
                     <label
@@ -133,7 +133,7 @@ export default function CheckoutPage() {
                 disabled={submitting}
                 className="w-full py-3 bg-primary text-white rounded-lg hover:bg-green-600 transition font-medium disabled:opacity-50"
               >
-                {submitting ? "Processing..." : "Place Order"}
+                {submitting ? "Đang xử lý..." : "Đặt hàng"}
               </button>
             </div>
           ) : null}

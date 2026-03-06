@@ -31,6 +31,7 @@ public class OrderService {
     private final TicketTypeRepository ticketTypeRepository;
     private final UserRepository userRepository;
     private final VNPayService vnPayService;
+    private final TicketService ticketService;
 
     @Transactional
     public OrderResponse checkout(Long userId, CheckoutRequest request) {
@@ -165,6 +166,9 @@ public class OrderService {
         order.setPaymentStatus(PaymentStatus.SUCCESS);
         order.setVnpayTransactionNo(transactionNo);
         orderRepository.save(order);
+
+        // Generate tickets after successful payment
+        ticketService.generateTickets(order);
 
         return Map.of("RspCode", "00", "Message", "Confirm Success");
     }
