@@ -35,3 +35,9 @@ app:
     secret: zjwQJAc8HzQ0Jqdly8banbFfbqY5MFsRj3eJ9HN0gi8=
     expiration-ms: 86400000
     refresh-expiration-ms: 604800000
+
+  vnpay:
+    tmn-code: 43V50SJT
+    hash-secret: P950CVLGK794ECXE5P8VAJNMOQZ4L973
+    payment-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+    return-url: http://localhost:3000/payment/vnpay-return

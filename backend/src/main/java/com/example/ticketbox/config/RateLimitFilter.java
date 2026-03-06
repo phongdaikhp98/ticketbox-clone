@@ -21,7 +21,7 @@ import java.time.Duration;
 @RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    private static final int MAX_REQUESTS = 10;
+    private static final int MAX_REQUESTS = 100;
     private static final Duration WINDOW = Duration.ofMinutes(1);
     private static final String KEY_PREFIX = "RATE_LIMIT_";
 

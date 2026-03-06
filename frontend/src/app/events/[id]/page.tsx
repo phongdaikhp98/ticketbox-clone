@@ -5,14 +5,25 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import { eventService } from "@/lib/event-service";
+import { cartService } from "@/lib/cart-service";
+import { wishlistService } from "@/lib/wishlist-service";
 import { Event } from "@/types/event";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCart } from "@/contexts/CartContext";
 
 export default function EventDetailPage() {
   const params = useParams();
   const id = Number(params.id);
+  const { user } = useAuth();
+  const { refreshCart } = useCart();
   const [event, setEvent] = useState<Event | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [quantities, setQuantities] = useState<Record<number, number>>({});
+  const [addingToCart, setAddingToCart] = useState<number | null>(null);
+  const [cartMessage, setCartMessage] = useState<Record<number, string>>({});
+  const [wishlisted, setWishlisted] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -22,6 +33,68 @@ export default function EventDetailPage() {
       .catch(() => setError("Event not found"))
       .finally(() => setLoading(false));
   }, [id]);
+
+  const checkWishlistStatus = async () => {
+    if (!user || !id) return;
+    try {
+      const res = await wishlistService.checkWishlist(id);
+      setWishlisted(res.wishlisted);
+    } catch {
+      // ignore
+    }
+  };
+
+  useEffect(() => {
+    checkWishlistStatus();
+  }, [user, id]);
+
+  const handleQuantityChange = (ticketTypeId: number, value: number, max: number) => {
+    const qty = Math.max(1, Math.min(value, max));
+    setQuantities((prev) => ({ ...prev, [ticketTypeId]: qty }));
+  };
+
+  const handleAddToCart = async (ticketTypeId: number) => {
+    if (!user) {
+      setCartMessage((prev) => ({ ...prev, [ticketTypeId]: "Please login first" }));
+      return;
+    }
+    setAddingToCart(ticketTypeId);
+    setCartMessage((prev) => ({ ...prev, [ticketTypeId]: "" }));
+    try {
+      const qty = quantities[ticketTypeId] || 1;
+      await cartService.addToCart({ ticketTypeId, quantity: qty });
+      setCartMessage((prev) => ({ ...prev, [ticketTypeId]: "Added to cart!" }));
+      await refreshCart();
+      setTimeout(() => {
+        setCartMessage((prev) => ({ ...prev, [ticketTypeId]: "" }));
+      }, 2000);
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Failed to add to cart"
+          : "Failed to add to cart";
+      setCartMessage((prev) => ({ ...prev, [ticketTypeId]: msg }));
+    } finally {
+      setAddingToCart(null);
+    }
+  };
+
+  const handleToggleWishlist = async () => {
+    if (!user) return;
+    setWishlistLoading(true);
+    try {
+      if (wishlisted) {
+        await wishlistService.removeFromWishlist(id);
+      } else {
+        await wishlistService.addToWishlist(id);
+      }
+      await checkWishlistStatus();
+    } catch {
+      // ignore
+    } finally {
+      setWishlistLoading(false);
+    }
+  };
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("vi-VN", {
@@ -56,12 +129,61 @@ export default function EventDetailPage() {
         ) : event ? (
           <div className="space-y-6">
             {event.imageUrl && (
-              <div className="rounded-lg overflow-hidden h-80">
+              <div className="rounded-lg overflow-hidden h-80 relative">
                 <img
                   src={event.imageUrl}
                   alt={event.title}
                   className="w-full h-full object-cover"
                 />
+                {user && (
+                  <button
+                    onClick={handleToggleWishlist}
+                    disabled={wishlistLoading}
+                    className="absolute top-4 right-4 p-2 bg-black/50 rounded-full hover:bg-black/70 transition"
+                    title={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+                  >
+                    <svg
+                      className={`w-6 h-6 ${wishlisted ? "text-red-500 fill-red-500" : "text-white"}`}
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill={wishlisted ? "currentColor" : "none"}
+                      stroke="currentColor"
+                      strokeWidth={2}
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                      />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {!event.imageUrl && user && (
+              <div className="flex justify-end">
+                <button
+                  onClick={handleToggleWishlist}
+                  disabled={wishlistLoading}
+                  className="flex items-center gap-2 px-3 py-1.5 bg-zinc-700 rounded hover:bg-zinc-600 transition text-sm"
+                >
+                  <svg
+                    className={`w-5 h-5 ${wishlisted ? "text-red-500 fill-red-500" : "text-gray-400"}`}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill={wishlisted ? "currentColor" : "none"}
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z"
+                    />
+                  </svg>
+                  <span className="text-gray-300">{wishlisted ? "Saved" : "Save"}</span>
+                </button>
               </div>
             )}
 
@@ -119,17 +241,58 @@ export default function EventDetailPage() {
                         {tt.availableCount} / {tt.capacity} available
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex items-center gap-3">
                       <p className="text-primary font-semibold">
                         {tt.price > 0 ? formatPrice(tt.price) : "Free"}
                       </p>
-                      <button
-                        className="mt-1 px-4 py-1.5 bg-primary text-white text-sm rounded hover:bg-green-600 transition disabled:opacity-50"
-                        disabled={tt.availableCount === 0}
-                      >
-                        {tt.availableCount > 0 ? "Buy" : "Sold Out"}
-                      </button>
+                      {tt.availableCount > 0 ? (
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center border border-zinc-600 rounded">
+                            <button
+                              onClick={() =>
+                                handleQuantityChange(tt.id, (quantities[tt.id] || 1) - 1, tt.availableCount)
+                              }
+                              className="px-2 py-1 text-gray-400 hover:text-white transition"
+                            >
+                              -
+                            </button>
+                            <span className="px-2 py-1 text-white text-sm min-w-[2rem] text-center">
+                              {quantities[tt.id] || 1}
+                            </span>
+                            <button
+                              onClick={() =>
+                                handleQuantityChange(tt.id, (quantities[tt.id] || 1) + 1, tt.availableCount)
+                              }
+                              className="px-2 py-1 text-gray-400 hover:text-white transition"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <button
+                            onClick={() => handleAddToCart(tt.id)}
+                            disabled={addingToCart === tt.id}
+                            className="px-4 py-1.5 bg-primary text-white text-sm rounded hover:bg-green-600 transition disabled:opacity-50"
+                          >
+                            {addingToCart === tt.id ? "..." : "Add to Cart"}
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="px-4 py-1.5 bg-zinc-600 text-gray-400 text-sm rounded">
+                          Sold Out
+                        </span>
+                      )}
                     </div>
+                    {cartMessage[tt.id] && (
+                      <p
+                        className={`text-xs mt-1 ${
+                          cartMessage[tt.id] === "Added to cart!"
+                            ? "text-green-400"
+                            : "text-red-400"
+                        }`}
+                      >
+                        {cartMessage[tt.id]}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>

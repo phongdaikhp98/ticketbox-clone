@@ -43,6 +43,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v1/auth/register", "/v1/auth/login", "/v1/auth/refresh-token").permitAll()
                         .requestMatchers("/v1/events/**").permitAll()
+                        .requestMatchers("/v1/payment/vnpay-ipn").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(rateLimitFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)

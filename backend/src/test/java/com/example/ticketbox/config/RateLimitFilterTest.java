@@ -45,14 +45,14 @@ class RateLimitFilterTest {
         rateLimitFilter.doFilterInternal(request, response, filterChain);
 
         assertEquals(200, response.getStatus());
-        assertEquals("10", response.getHeader("X-RateLimit-Limit"));
-        assertEquals("5", response.getHeader("X-RateLimit-Remaining"));
+        assertEquals("100", response.getHeader("X-RateLimit-Limit"));
+        assertEquals("95", response.getHeader("X-RateLimit-Remaining"));
     }
 
     @Test
     void doFilter_overLimit_returns429() throws Exception {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.increment("RATE_LIMIT_127.0.0.1")).thenReturn(11L);
+        when(valueOperations.increment("RATE_LIMIT_127.0.0.1")).thenReturn(101L);
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRemoteAddr("127.0.0.1");
@@ -98,7 +98,7 @@ class RateLimitFilterTest {
     @Test
     void doFilter_exactlyAtLimit_allowsRequest() throws Exception {
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-        when(valueOperations.increment("RATE_LIMIT_127.0.0.1")).thenReturn(10L);
+        when(valueOperations.increment("RATE_LIMIT_127.0.0.1")).thenReturn(100L);
 
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.setRemoteAddr("127.0.0.1");
