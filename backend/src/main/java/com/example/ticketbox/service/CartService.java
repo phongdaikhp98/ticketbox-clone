@@ -31,7 +31,7 @@ public class CartService {
         List<CartItem> items = cartItemRepository.findByUserId(userId);
         List<CartItemResponse> itemResponses = items.stream()
                 .map(this::toCartItemResponse)
-                .collect(Collectors.toList());
+                .toList();
 
         BigDecimal totalAmount = items.stream()
                 .map(item -> item.getTicketType().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))

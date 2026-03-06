@@ -30,6 +30,9 @@ export default function Header() {
             <>
               {(user.role === "ORGANIZER" || user.role === "ADMIN") && (
                 <>
+                  <Link href="/organizer/dashboard" className="text-gray-300 hover:text-white text-sm transition">
+                    Dashboard
+                  </Link>
                   <Link href="/events/my-events" className="text-gray-300 hover:text-white text-sm transition">
                     Sự kiện của tôi
                   </Link>
