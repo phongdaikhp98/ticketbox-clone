@@ -33,6 +33,9 @@ Thumbs.db
 .env.local
 .env*.local
 
+# Local config (chứa credentials — không commit)
+backend/src/main/resources/application-local.yml
+
 # Logs
 *.log
 npm-debug.log*

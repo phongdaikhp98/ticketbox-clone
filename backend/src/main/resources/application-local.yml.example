@@ -1,0 +1,19 @@
+# ============================================================
+# LOCAL CONFIGURATION TEMPLATE
+# Copy file này thành application-local.yml và điền giá trị thật
+# File application-local.yml đã được add vào .gitignore
+# ============================================================
+
+DB_PASSWORD: <oracle_db_password>
+
+JWT_SECRET: <random_base64_string_32_bytes>
+
+VNPAY_TMN_CODE: <vnpay_merchant_code>
+VNPAY_HASH_SECRET: <vnpay_hash_secret>
+
+# Mailtrap SMTP (Email Testing Sandbox):
+# 1. Đăng ký tại https://mailtrap.io
+# 2. Vào Email Testing → Inboxes → click inbox → SMTP Settings → chọn Spring Boot
+# 3. Copy username + password vào đây
+MAIL_USERNAME: <mailtrap_username>
+MAIL_PASSWORD: <mailtrap_password>

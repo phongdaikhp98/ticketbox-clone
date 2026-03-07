@@ -65,7 +65,10 @@
       "Bash(./gradlew build)",
       "Bash(curl -s \"http://localhost:8083/v1/auth/login\" -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"test@example.com\"\",\"\"password\"\":\"\"Test@123\"\"}')",
       "Bash(python -m json.tool)",
-      "Bash(./gradlew compileJava)"
+      "Bash(./gradlew compileJava)",
+      "Bash(xargs grep -l -i \"mail\\\\|email\\\\|smtp\\\\|javamailsender\")",
+      "Bash(xargs grep -l \"enum OrderStatus\\\\|enum PaymentStatus\")",
+      "Bash(xargs grep -i \"mail\\\\|smtp\\\\|email\")"
     ]
   }
 }

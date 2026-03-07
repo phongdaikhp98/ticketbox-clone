@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Thanh toán thất bại</title>
+</head>
+<body style="margin:0;padding:0;background-color:#18181b;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#18181b;padding:32px 0;">
+  <tr>
+    <td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#27272a;border-radius:16px;overflow:hidden;border:1px solid #3f3f46;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#dc2626,#b91c1c);padding:32px 40px;text-align:center;">
+            <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">Ticketbox</div>
+            <div style="font-size:40px;margin-top:16px;">❌</div>
+            <div style="font-size:22px;font-weight:600;color:#ffffff;margin-top:8px;">Thanh toán thất bại</div>
+            <div style="font-size:14px;color:#fecaca;margin-top:4px;">Giao dịch không được xử lý thành công</div>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:32px 40px;">
+
+            <!-- Greeting -->
+            <p style="color:#e4e4e7;font-size:15px;margin:0 0 24px;">
+              Xin chào <strong style="color:#f87171;" th:text="${userName}">Nguyễn Văn A</strong>,
+              <br/>
+              Rất tiếc, thanh toán cho đơn hàng <strong style="color:#f87171;" th:text="'#' + ${orderId}">#123</strong> của bạn không thành công.
+            </p>
+
+            <!-- Order Info -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#3f3f46;border-radius:10px;padding:16px;margin-bottom:24px;">
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:4px 8px;">Mã đơn hàng</td>
+                <td style="color:#ffffff;font-size:13px;font-weight:600;text-align:right;padding:4px 8px;" th:text="'#' + ${orderId}">#123</td>
+              </tr>
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:4px 8px;">Số tiền</td>
+                <td style="color:#ffffff;font-size:13px;text-align:right;padding:4px 8px;" th:text="${totalAmount}">500.000 ₫</td>
+              </tr>
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:4px 8px;">Trạng thái</td>
+                <td style="padding:4px 8px;text-align:right;">
+                  <span style="background-color:#7f1d1d;color:#fca5a5;font-size:12px;padding:2px 8px;border-radius:9999px;">Thất bại</span>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Reason -->
+            <div style="background-color:#450a0a;border:1px solid #7f1d1d;border-radius:10px;padding:16px;margin-bottom:24px;">
+              <div style="color:#fca5a5;font-size:13px;font-weight:600;margin-bottom:4px;">⚠️ Lý do</div>
+              <div style="color:#fecaca;font-size:13px;">Giao dịch bị hủy hoặc xảy ra lỗi từ cổng thanh toán VNPay. Tài khoản của bạn không bị trừ tiền.</div>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align:center;margin-top:24px;">
+              <a th:href="${retryUrl}" href="#"
+                 style="display:inline-block;background-color:#dc2626;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 36px;border-radius:10px;letter-spacing:0.3px;">
+                🔄 Thử thanh toán lại
+              </a>
+            </div>
+
+            <p style="color:#71717a;font-size:13px;text-align:center;margin-top:16px;">
+              Đơn hàng vẫn còn hiệu lực. Bạn có thể thử thanh toán lại từ trang chi tiết đơn hàng.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background-color:#18181b;padding:24px 40px;text-align:center;border-top:1px solid #3f3f46;">
+            <div style="color:#52525b;font-size:12px;">© 2025 Ticketbox · Hỗ trợ: support@ticketbox.vn</div>
+            <div style="color:#52525b;font-size:11px;margin-top:4px;">Email này được gửi tự động, vui lòng không trả lời.</div>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

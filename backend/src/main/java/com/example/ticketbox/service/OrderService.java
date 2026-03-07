@@ -32,6 +32,7 @@ public class OrderService {
     private final UserRepository userRepository;
     private final VNPayService vnPayService;
     private final TicketService ticketService;
+    private final EmailService emailService;
 
     @Transactional
     public OrderResponse checkout(Long userId, CheckoutRequest request) {
@@ -135,6 +136,7 @@ public class OrderService {
             order.setPaymentStatus(PaymentStatus.FAILED);
             order.setVnpayTransactionNo(transactionNo);
             orderRepository.save(order);
+            emailService.sendPaymentFailedEmail(order.getId());
             return Map.of("RspCode", "00", "Message", "Confirm Success");
         }
 
@@ -169,6 +171,7 @@ public class OrderService {
 
         // Generate tickets after successful payment
         ticketService.generateTickets(order);
+        emailService.sendPaymentSuccessEmail(order.getId());
 
         return Map.of("RspCode", "00", "Message", "Confirm Success");
     }
