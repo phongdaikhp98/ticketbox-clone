@@ -64,7 +64,8 @@
       "Bash(git add frontend/src/components/ProtectedRoute.tsx frontend/src/app/events/create/page.tsx frontend/src/app/events/[id]/edit/page.tsx frontend/src/app/events/my-events/page.tsx)",
       "Bash(./gradlew build)",
       "Bash(curl -s \"http://localhost:8083/v1/auth/login\" -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"test@example.com\"\",\"\"password\"\":\"\"Test@123\"\"}')",
-      "Bash(python -m json.tool)"
+      "Bash(python -m json.tool)",
+      "Bash(./gradlew compileJava)"
     ]
   }
 }

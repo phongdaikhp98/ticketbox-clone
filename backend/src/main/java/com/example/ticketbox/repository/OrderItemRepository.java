@@ -9,6 +9,8 @@ import org.springframework.stereotype.Repository;
 import java.math.BigDecimal;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+
 @Repository
 public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
 
@@ -25,4 +27,10 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
     @Query("SELECT COALESCE(SUM(oi.unitPrice * oi.quantity), 0) FROM OrderItem oi " +
            "JOIN oi.order o WHERE o.status = 'COMPLETED' AND oi.event.id = :eventId")
     BigDecimal sumRevenueByEventId(@Param("eventId") Long eventId);
+
+    @Query("SELECT oi.event.id, oi.event.title, COALESCE(SUM(oi.unitPrice * oi.quantity), 0) " +
+           "FROM OrderItem oi JOIN oi.order o WHERE o.status = 'COMPLETED' " +
+           "GROUP BY oi.event.id, oi.event.title " +
+           "ORDER BY COALESCE(SUM(oi.unitPrice * oi.quantity), 0) DESC")
+    List<Object[]> findTopEventsByRevenue(Pageable pageable);
 }
