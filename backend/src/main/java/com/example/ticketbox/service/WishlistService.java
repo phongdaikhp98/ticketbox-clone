@@ -5,6 +5,7 @@ import com.example.ticketbox.dto.WishlistResponse;
 import com.example.ticketbox.exception.BadRequestException;
 import com.example.ticketbox.exception.ResourceNotFoundException;
 import com.example.ticketbox.model.Event;
+import com.example.ticketbox.model.TicketType;
 import com.example.ticketbox.model.User;
 import com.example.ticketbox.model.Wishlist;
 import com.example.ticketbox.repository.EventRepository;
@@ -70,7 +71,7 @@ public class WishlistService {
     private WishlistResponse toWishlistResponse(Wishlist wishlist) {
         Event event = wishlist.getEvent();
         BigDecimal minPrice = event.getTicketTypes().stream()
-                .map(tt -> tt.getPrice())
+                .map(TicketType::getPrice)
                 .min(BigDecimal::compareTo)
                 .orElse(BigDecimal.ZERO);
 

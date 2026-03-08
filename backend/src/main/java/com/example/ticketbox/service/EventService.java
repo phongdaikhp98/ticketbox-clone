@@ -3,7 +3,10 @@ package com.example.ticketbox.service;
 import com.example.ticketbox.dto.*;
 import com.example.ticketbox.exception.BadRequestException;
 import com.example.ticketbox.exception.ResourceNotFoundException;
-import com.example.ticketbox.model.*;
+import com.example.ticketbox.model.Event;
+import com.example.ticketbox.model.EventStatus;
+import com.example.ticketbox.model.TicketType;
+import com.example.ticketbox.model.User;
 import com.example.ticketbox.repository.EventRepository;
 import com.example.ticketbox.repository.UserRepository;
 import com.example.ticketbox.specification.EventSpecification;
@@ -18,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -50,7 +52,7 @@ public class EventService {
     public List<EventResponse> getFeaturedEvents() {
         return eventRepository.findFeaturedEvents().stream()
                 .map(this::toEventResponse)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     // === Organizer ===
@@ -68,7 +70,7 @@ public class EventService {
                 .location(request.getLocation())
                 .imageUrl(request.getImageUrl())
                 .category(request.getCategory())
-                .isFeatured(request.getIsFeatured() != null ? request.getIsFeatured() : false)
+                .isFeatured(request.getIsFeatured() != null && request.getIsFeatured())
                 .organizer(organizer)
                 .build();
 
@@ -217,7 +219,7 @@ public class EventService {
 
         List<EventResponse.TicketTypeResponse> ttResponses = event.getTicketTypes().stream()
                 .map(this::toTicketTypeResponse)
-                .collect(Collectors.toList());
+                .toList();
 
         return EventResponse.builder()
                 .id(event.getId())

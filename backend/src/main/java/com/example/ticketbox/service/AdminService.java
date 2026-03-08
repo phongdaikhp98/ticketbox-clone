@@ -20,7 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -61,7 +60,7 @@ public class AdminService {
                             .createdDate(order.getCreatedDate())
                             .build();
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         // Top 5 events by revenue
         List<Object[]> topEventsRaw = orderItemRepository.findTopEventsByRevenue(
@@ -72,7 +71,7 @@ public class AdminService {
                         .eventTitle((String) row[1])
                         .revenue((BigDecimal) row[2])
                         .build())
-                .collect(Collectors.toList());
+                .toList();
 
         return AdminOverviewResponse.builder()
                 .totalUsers(totalUsers)
@@ -220,7 +219,7 @@ public class AdminService {
                         .quantity(item.getQuantity())
                         .unitPrice(item.getUnitPrice())
                         .build())
-                .collect(Collectors.toList());
+                .toList();
 
         String eventTitle = order.getOrderItems().isEmpty() ? ""
                 : order.getOrderItems().get(0).getEvent().getTitle();

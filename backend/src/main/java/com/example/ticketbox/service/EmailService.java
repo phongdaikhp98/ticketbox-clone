@@ -20,7 +20,6 @@ import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -128,7 +127,7 @@ public class EmailService {
                         formatCurrency(item.getUnitPrice().multiply(
                                 java.math.BigDecimal.valueOf(item.getQuantity())).longValue())
                 ))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public record EmailOrderItem(

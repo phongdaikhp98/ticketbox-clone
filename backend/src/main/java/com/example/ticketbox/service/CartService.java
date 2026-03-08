@@ -1,6 +1,9 @@
 package com.example.ticketbox.service;
 
-import com.example.ticketbox.dto.*;
+import com.example.ticketbox.dto.AddToCartRequest;
+import com.example.ticketbox.dto.CartItemResponse;
+import com.example.ticketbox.dto.CartResponse;
+import com.example.ticketbox.dto.UpdateCartItemRequest;
 import com.example.ticketbox.exception.BadRequestException;
 import com.example.ticketbox.exception.ResourceNotFoundException;
 import com.example.ticketbox.model.CartItem;
@@ -17,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

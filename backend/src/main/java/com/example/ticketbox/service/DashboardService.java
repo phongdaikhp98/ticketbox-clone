@@ -68,7 +68,7 @@ public class DashboardService {
                             .createdDate(order.getCreatedDate())
                             .build();
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         return DashboardOverviewResponse.builder()
                 .totalEvents(totalEvents)
@@ -115,7 +115,7 @@ public class DashboardService {
                         .revenue(tt.getPrice().multiply(BigDecimal.valueOf(tt.getSoldCount())))
                         .checkedInCount(checkedInByType.getOrDefault(tt.getId(), 0L))
                         .build())
-                .collect(Collectors.toList());
+                .toList();
 
         EventStatsResponse.EventSummaryDto eventSummary = EventStatsResponse.EventSummaryDto.builder()
                 .id(event.getId())
