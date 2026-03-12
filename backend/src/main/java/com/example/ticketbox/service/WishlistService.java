@@ -82,7 +82,7 @@ public class WishlistService {
                 .eventImageUrl(event.getImageUrl())
                 .eventDate(event.getEventDate())
                 .eventLocation(event.getLocation())
-                .eventCategory(event.getCategory().name())
+                .eventCategory(event.getCategory() != null ? event.getCategory().getName() : null)
                 .minPrice(minPrice)
                 .createdDate(wishlist.getCreatedDate())
                 .build();

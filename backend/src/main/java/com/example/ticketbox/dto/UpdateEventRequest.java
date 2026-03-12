@@ -1,6 +1,5 @@
 package com.example.ticketbox.dto;
 
-import com.example.ticketbox.model.EventCategory;
 import com.example.ticketbox.model.EventStatus;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Size;
@@ -27,7 +26,10 @@ public class UpdateEventRequest {
     @Size(max = 500, message = "Image URL must not exceed 500 characters")
     private String imageUrl;
 
-    private EventCategory category;
+    private Long categoryId;
+
+    // null = no change, empty list = remove all tags
+    private List<String> tags;
 
     private EventStatus status;
 

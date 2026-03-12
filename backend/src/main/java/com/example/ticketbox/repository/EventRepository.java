@@ -22,4 +22,6 @@ public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecific
     List<Event> findFeaturedEvents();
 
     Long countByOrganizerId(Long organizerId);
+
+    Long countByCategoryId(Long categoryId);
 }

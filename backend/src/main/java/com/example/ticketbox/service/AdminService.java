@@ -150,14 +150,14 @@ public class AdminService {
 
     // ==================== Event Management ====================
 
-    public Page<AdminEventResponse> getEvents(EventStatus status, EventCategory category,
+    public Page<AdminEventResponse> getEvents(EventStatus status, Long categoryId,
                                                String search, int page, int size) {
         Specification<Event> spec = Specification.where(null);
         if (status != null) {
             spec = spec.and(EventSpecification.hasStatus(status));
         }
-        if (category != null) {
-            spec = spec.and(EventSpecification.hasCategory(category));
+        if (categoryId != null) {
+            spec = spec.and(EventSpecification.hasCategoryId(categoryId));
         }
         if (search != null && !search.isBlank()) {
             spec = spec.and(EventSpecification.titleContains(search));
@@ -251,7 +251,7 @@ public class AdminService {
                 .title(event.getTitle())
                 .organizerName(event.getOrganizer().getFullName())
                 .organizerId(event.getOrganizer().getId())
-                .category(event.getCategory().name())
+                .category(event.getCategory() != null ? event.getCategory().getName() : null)
                 .status(event.getStatus().name())
                 .isFeatured(event.getIsFeatured())
                 .totalCapacity(totalCapacity)

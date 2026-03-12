@@ -1,11 +1,10 @@
 package com.example.ticketbox.specification;
 
-import com.example.ticketbox.model.Event;
-import com.example.ticketbox.model.EventCategory;
-import com.example.ticketbox.model.EventStatus;
-import com.example.ticketbox.model.TicketType;
+import com.example.ticketbox.model.*;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Root;
+import jakarta.persistence.criteria.Subquery;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
@@ -19,8 +18,20 @@ public class EventSpecification {
         return (root, query, cb) -> cb.equal(root.get("status"), status);
     }
 
-    public static Specification<Event> hasCategory(EventCategory category) {
-        return (root, query, cb) -> cb.equal(root.get("category"), category);
+    public static Specification<Event> hasCategoryId(Long categoryId) {
+        return (root, query, cb) -> cb.equal(root.get("category").get("id"), categoryId);
+    }
+
+    public static Specification<Event> hasTag(String tagName) {
+        return (root, query, cb) -> {
+            // Use EXISTS subquery to avoid DISTINCT + JOIN conflict with pagination count query in Oracle
+            Subquery<Integer> sq = query.subquery(Integer.class);
+            Root<Event> sqEvent = sq.correlate(root);
+            Join<Event, Tag> tagJoin = sqEvent.join("tags", JoinType.INNER);
+            sq.select(cb.literal(1));
+            sq.where(cb.equal(cb.lower(tagJoin.get("name")), tagName.toLowerCase()));
+            return cb.exists(sq);
+        };
     }
 
     public static Specification<Event> eventDateAfter(LocalDateTime from) {

@@ -5,8 +5,9 @@ import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Pagination from "@/components/Pagination";
 import { adminService } from "@/lib/admin-service";
+import { categoryService } from "@/lib/category-service";
 import { AdminEvent } from "@/types/admin";
-import { PageResponse } from "@/types/event";
+import { PageResponse, CategoryInfo } from "@/types/event";
 
 const formatDate = (dateStr: string) =>
   new Date(dateStr).toLocaleDateString("vi-VN", {
@@ -27,15 +28,6 @@ const EVENT_STATUS_COLORS: Record<string, string> = {
   CANCELLED: "bg-red-900/30 text-red-400",
 };
 
-const CATEGORY_LABELS: Record<string, string> = {
-  MUSIC: "Âm nhạc",
-  SPORTS: "Thể thao",
-  CONFERENCE: "Hội thảo",
-  THEATER: "Kịch",
-  FILM: "Phim",
-  WORKSHOP: "Workshop",
-  OTHER: "Khác",
-};
 
 export default function AdminEventsPage() {
   const [data, setData] = useState<PageResponse<AdminEvent> | null>(null);
@@ -46,7 +38,12 @@ export default function AdminEventsPage() {
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+
+  useEffect(() => {
+    categoryService.getCategories().then(setCategories).catch(() => {});
+  }, []);
 
   const fetchEvents = useCallback(async () => {
     setLoading(true);
@@ -54,7 +51,7 @@ export default function AdminEventsPage() {
       const params: Record<string, unknown> = { page, size: 10 };
       if (search) params.search = search;
       if (statusFilter) params.status = statusFilter;
-      if (categoryFilter) params.category = categoryFilter;
+      if (categoryFilter) params.categoryId = Number(categoryFilter);
       const result = await adminService.getEvents(params);
       setData(result);
     } catch {
@@ -164,8 +161,8 @@ export default function AdminEventsPage() {
               className="bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:border-primary"
             >
               <option value="">Tất cả danh mục</option>
-              {Object.entries(CATEGORY_LABELS).map(([val, label]) => (
-                <option key={val} value={val}>{label}</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
               ))}
             </select>
           </div>
@@ -223,7 +220,7 @@ export default function AdminEventsPage() {
                           {event.organizerName}
                         </td>
                         <td className="px-4 py-3 text-gray-400 text-sm">
-                          {CATEGORY_LABELS[event.category] || event.category}
+                          {event.category || "—"}
                         </td>
                         <td className="px-4 py-3">
                           <span

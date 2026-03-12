@@ -1,6 +1,5 @@
 package com.example.ticketbox.dto;
 
-import com.example.ticketbox.model.EventCategory;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -9,7 +8,8 @@ import java.time.LocalDateTime;
 @Data
 public class EventFilterRequest {
 
-    private EventCategory category;
+    private Long categoryId;
+    private String tag;
     private LocalDateTime dateFrom;
     private LocalDateTime dateTo;
     private BigDecimal priceMin;

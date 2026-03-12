@@ -2,7 +2,6 @@ package com.example.ticketbox.controller;
 
 import com.example.ticketbox.common.ApiResponse;
 import com.example.ticketbox.dto.*;
-import com.example.ticketbox.model.EventCategory;
 import com.example.ticketbox.model.EventStatus;
 import com.example.ticketbox.model.OrderStatus;
 import com.example.ticketbox.model.Role;
@@ -79,12 +78,12 @@ public class AdminController {
     @GetMapping("/events")
     public ResponseEntity<ApiResponse<Page<AdminEventResponse>>> getEvents(
             @RequestParam(required = false) EventStatus status,
-            @RequestParam(required = false) EventCategory category,
+            @RequestParam(required = false) Long categoryId,
             @RequestParam(required = false) String search,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(ApiResponse.success(
-                adminService.getEvents(status, category, search, page, size)));
+                adminService.getEvents(status, categoryId, search, page, size)));
     }
 
     @PatchMapping("/events/{id}/toggle-featured")

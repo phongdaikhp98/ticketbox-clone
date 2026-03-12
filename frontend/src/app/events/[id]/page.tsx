@@ -189,9 +189,15 @@ export default function EventDetailPage() {
 
             <div className="bg-zinc-800 rounded-lg p-6 space-y-4">
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded">
-                  {event.category}
-                </span>
+                {event.category && (
+                  <Link
+                    href={`/events?categoryId=${event.category.id}`}
+                    className="px-2 py-1 bg-purple-500/20 text-purple-400 text-xs rounded hover:bg-purple-500/30 transition"
+                  >
+                    {event.category.icon && <span className="mr-1">{event.category.icon}</span>}
+                    {event.category.name}
+                  </Link>
+                )}
                 {event.isFeatured && (
                   <span className="px-2 py-1 bg-primary/20 text-primary text-xs rounded">
                     Featured
@@ -221,8 +227,25 @@ export default function EventDetailPage() {
 
               {event.description && (
                 <div>
-                  <h3 className="text-gray-400 text-sm mb-2">Description</h3>
+                  <h3 className="text-gray-400 text-sm mb-2">Mô tả</h3>
                   <p className="text-gray-300 whitespace-pre-line">{event.description}</p>
+                </div>
+              )}
+
+              {event.tags && event.tags.length > 0 && (
+                <div>
+                  <h3 className="text-gray-400 text-sm mb-2">Tags</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {event.tags.map((tag) => (
+                      <Link
+                        key={tag.id}
+                        href={`/events?tag=${encodeURIComponent(tag.name)}`}
+                        className="px-2 py-1 bg-zinc-700 text-zinc-300 text-xs rounded hover:bg-zinc-600 hover:text-white transition"
+                      >
+                        #{tag.name}
+                      </Link>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>

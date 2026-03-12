@@ -1,6 +1,5 @@
 package com.example.ticketbox.dto;
 
-import com.example.ticketbox.model.EventCategory;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
@@ -33,7 +32,9 @@ public class CreateEventRequest {
     private String imageUrl;
 
     @NotNull(message = "Category is required")
-    private EventCategory category;
+    private Long categoryId;
+
+    private List<String> tags;
 
     private Boolean isFeatured = false;
 

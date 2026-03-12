@@ -22,7 +22,8 @@ public class EventResponse {
     private LocalDateTime endDate;
     private String location;
     private String imageUrl;
-    private String category;
+    private CategoryResponse category;
+    private List<TagResponse> tags;
     private String status;
     private Boolean isFeatured;
     private OrganizerDto organizer;

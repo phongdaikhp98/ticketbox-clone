@@ -5,7 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { eventService } from "@/lib/event-service";
-import { Event, UpdateEventRequest, TicketTypeRequest, EVENT_CATEGORIES } from "@/types/event";
+import { categoryService } from "@/lib/category-service";
+import { Event, UpdateEventRequest, TicketTypeRequest, CategoryInfo } from "@/types/event";
 
 export default function EditEventPage() {
   return (
@@ -28,6 +29,7 @@ function EditEventForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [categories, setCategories] = useState<CategoryInfo[]>([]);
 
   const [form, setForm] = useState({
     title: "",
@@ -36,12 +38,18 @@ function EditEventForm() {
     endDate: "",
     location: "",
     imageUrl: "",
-    category: "MUSIC",
+    categoryId: "",
     status: "DRAFT",
     isFeatured: false,
   });
 
   const [ticketTypes, setTicketTypes] = useState<TicketTypeRequest[]>([]);
+  const [tagInput, setTagInput] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
+
+  useEffect(() => {
+    categoryService.getCategories().then(setCategories).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -56,10 +64,11 @@ function EditEventForm() {
           endDate: data.endDate?.slice(0, 16) || "",
           location: data.location,
           imageUrl: data.imageUrl || "",
-          category: data.category,
+          categoryId: data.category ? String(data.category.id) : "",
           status: data.status,
           isFeatured: data.isFeatured,
         });
+        setTags(data.tags?.map((t) => t.name) ?? []);
         setTicketTypes(
           data.ticketTypes.map((tt) => ({
             name: tt.name,
@@ -82,6 +91,21 @@ function EditEventForm() {
     });
     setError("");
     setSuccess("");
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" || e.key === ",") {
+      e.preventDefault();
+      const normalized = tagInput.trim().toLowerCase();
+      if (normalized && !tags.includes(normalized) && tags.length < 10) {
+        setTags([...tags, normalized]);
+      }
+      setTagInput("");
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    setTags(tags.filter((t) => t !== tag));
   };
 
   const handleTicketChange = (index: number, field: string, value: string | number) => {
@@ -113,7 +137,8 @@ function EditEventForm() {
         endDate: form.endDate || undefined,
         location: form.location,
         imageUrl: form.imageUrl || undefined,
-        category: form.category,
+        categoryId: form.categoryId ? Number(form.categoryId) : undefined,
+        tags: tags,
         status: form.status,
         isFeatured: form.isFeatured,
         ticketTypes: ticketTypes.map((tt) => ({
@@ -124,7 +149,7 @@ function EditEventForm() {
       };
 
       await eventService.updateEvent(id, request);
-      setSuccess("Event updated successfully!");
+      setSuccess("Cập nhật sự kiện thành công!");
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string; data?: Record<string, string> } } };
       if (error.response?.data?.data) {
@@ -138,7 +163,7 @@ function EditEventForm() {
   };
 
   const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this event?")) return;
+    if (!confirm("Bạn có chắc muốn xóa sự kiện này?")) return;
     try {
       await eventService.deleteEvent(id);
       router.push("/events/my-events");
@@ -151,7 +176,7 @@ function EditEventForm() {
   if (loading) {
     return (
       <main className="max-w-3xl mx-auto px-4 py-8">
-        <div className="text-center text-gray-400">Loading...</div>
+        <div className="text-center text-gray-400">Đang tải...</div>
       </main>
     );
   }
@@ -173,12 +198,12 @@ function EditEventForm() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Edit Event</h1>
+        <h1 className="text-2xl font-bold text-white">Chỉnh sửa sự kiện</h1>
         <button
           onClick={() => router.push("/events/my-events")}
           className="text-gray-400 hover:text-white text-sm transition"
         >
-          Back to My Events
+          ← Sự kiện của tôi
         </button>
       </div>
 
@@ -196,7 +221,7 @@ function EditEventForm() {
 
         <div className="bg-zinc-800 rounded-lg p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-white font-semibold">Event Details</h2>
+            <h2 className="text-white font-semibold">Thông tin sự kiện</h2>
             <select
               name="status"
               value={form.status}
@@ -204,15 +229,13 @@ function EditEventForm() {
               className="px-3 py-1.5 bg-zinc-700 border border-zinc-600 rounded-lg text-white text-sm focus:outline-none focus:border-primary"
             >
               {statusOptions().map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
+                <option key={s} value={s}>{s}</option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="block text-gray-400 text-sm mb-1">Title</label>
+            <label className="block text-gray-400 text-sm mb-1">Tiêu đề</label>
             <input
               type="text"
               name="title"
@@ -223,7 +246,7 @@ function EditEventForm() {
           </div>
 
           <div>
-            <label className="block text-gray-400 text-sm mb-1">Description</label>
+            <label className="block text-gray-400 text-sm mb-1">Mô tả</label>
             <textarea
               name="description"
               value={form.description}
@@ -235,7 +258,7 @@ function EditEventForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-400 text-sm mb-1">Event Date</label>
+              <label className="block text-gray-400 text-sm mb-1">Ngày bắt đầu</label>
               <input
                 type="datetime-local"
                 name="eventDate"
@@ -245,7 +268,7 @@ function EditEventForm() {
               />
             </div>
             <div>
-              <label className="block text-gray-400 text-sm mb-1">End Date</label>
+              <label className="block text-gray-400 text-sm mb-1">Ngày kết thúc</label>
               <input
                 type="datetime-local"
                 name="endDate"
@@ -257,7 +280,7 @@ function EditEventForm() {
           </div>
 
           <div>
-            <label className="block text-gray-400 text-sm mb-1">Location</label>
+            <label className="block text-gray-400 text-sm mb-1">Địa điểm</label>
             <input
               type="text"
               name="location"
@@ -269,16 +292,16 @@ function EditEventForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-gray-400 text-sm mb-1">Category</label>
+              <label className="block text-gray-400 text-sm mb-1">Thể loại</label>
               <select
-                name="category"
-                value={form.category}
+                name="categoryId"
+                value={form.categoryId}
                 onChange={handleChange}
                 className="w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white focus:outline-none focus:border-primary"
               >
-                {EVENT_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.icon} {cat.name}
                   </option>
                 ))}
               </select>
@@ -295,6 +318,35 @@ function EditEventForm() {
             </div>
           </div>
 
+          <div>
+            <label className="block text-gray-400 text-sm mb-1">Tags (Enter hoặc dấu phẩy để thêm)</label>
+            <div className="flex flex-wrap gap-2 p-2 bg-zinc-700 border border-zinc-600 rounded-lg min-h-[2.5rem]">
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className="flex items-center gap-1 px-2 py-0.5 bg-zinc-600 text-zinc-200 text-sm rounded"
+                >
+                  #{tag}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="text-zinc-400 hover:text-white ml-1"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+              <input
+                type="text"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
+                onKeyDown={handleTagKeyDown}
+                placeholder={tags.length === 0 ? "Nhập tag..." : ""}
+                className="flex-1 min-w-[120px] bg-transparent text-white text-sm outline-none placeholder-gray-500"
+              />
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -303,26 +355,26 @@ function EditEventForm() {
               onChange={handleChange}
               className="rounded"
             />
-            <label className="text-gray-400 text-sm">Featured Event</label>
+            <label className="text-gray-400 text-sm">Sự kiện nổi bật</label>
           </div>
         </div>
 
         <div className="bg-zinc-800 rounded-lg p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-white font-semibold">Ticket Types</h2>
+            <h2 className="text-white font-semibold">Loại vé</h2>
             <button
               type="button"
               onClick={addTicketType}
               className="px-3 py-1 bg-zinc-700 text-gray-300 rounded hover:bg-zinc-600 transition text-sm"
             >
-              + Add Type
+              + Thêm loại vé
             </button>
           </div>
 
           {ticketTypes.map((tt, index) => (
             <div key={index} className="flex gap-3 items-end">
               <div className="flex-1">
-                <label className="block text-gray-500 text-xs mb-1">Name</label>
+                <label className="block text-gray-500 text-xs mb-1">Tên</label>
                 <input
                   type="text"
                   value={tt.name}
@@ -331,7 +383,7 @@ function EditEventForm() {
                 />
               </div>
               <div className="w-32">
-                <label className="block text-gray-500 text-xs mb-1">Price (VND)</label>
+                <label className="block text-gray-500 text-xs mb-1">Giá (VND)</label>
                 <input
                   type="number"
                   value={tt.price}
@@ -341,7 +393,7 @@ function EditEventForm() {
                 />
               </div>
               <div className="w-24">
-                <label className="block text-gray-500 text-xs mb-1">Capacity</label>
+                <label className="block text-gray-500 text-xs mb-1">Số lượng</label>
                 <input
                   type="number"
                   value={tt.capacity}
@@ -356,7 +408,7 @@ function EditEventForm() {
                   onClick={() => removeTicketType(index)}
                   className="px-3 py-2 text-red-400 hover:text-red-300 text-sm"
                 >
-                  Remove
+                  Xóa
                 </button>
               )}
             </div>
@@ -369,7 +421,7 @@ function EditEventForm() {
             disabled={saving}
             className="flex-1 py-3 bg-primary text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50 font-medium"
           >
-            {saving ? "Saving..." : "Save Changes"}
+            {saving ? "Đang lưu..." : "Lưu thay đổi"}
           </button>
 
           {event.status === "DRAFT" && (
@@ -378,7 +430,7 @@ function EditEventForm() {
               onClick={handleDelete}
               className="py-3 px-6 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20 transition font-medium"
             >
-              Delete
+              Xóa
             </button>
           )}
         </div>

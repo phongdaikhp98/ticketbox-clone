@@ -3,10 +3,8 @@ package com.example.ticketbox.service;
 import com.example.ticketbox.dto.*;
 import com.example.ticketbox.exception.BadRequestException;
 import com.example.ticketbox.exception.ResourceNotFoundException;
-import com.example.ticketbox.model.Event;
-import com.example.ticketbox.model.EventStatus;
-import com.example.ticketbox.model.TicketType;
-import com.example.ticketbox.model.User;
+import com.example.ticketbox.model.*;
+import com.example.ticketbox.repository.CategoryRepository;
 import com.example.ticketbox.repository.EventRepository;
 import com.example.ticketbox.repository.UserRepository;
 import com.example.ticketbox.specification.EventSpecification;
@@ -20,7 +18,9 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -28,13 +28,14 @@ public class EventService {
 
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final CategoryRepository categoryRepository;
+    private final TagService tagService;
 
     // === Public ===
 
     public Page<EventResponse> getPublishedEvents(EventFilterRequest filter) {
         Specification<Event> spec = Specification.where(EventSpecification.hasStatus(EventStatus.PUBLISHED));
         spec = applyFilters(spec, filter);
-
         Pageable pageable = buildPageable(filter);
         Page<Event> events = eventRepository.findAll(spec, pageable);
         return events.map(this::toEventResponse);
@@ -62,6 +63,11 @@ public class EventService {
         User organizer = userRepository.findById(organizerId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", organizerId));
 
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new ResourceNotFoundException("Category", request.getCategoryId()));
+
+        Set<Tag> tags = tagService.resolveTagList(request.getTags());
+
         Event event = Event.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -69,7 +75,8 @@ public class EventService {
                 .endDate(request.getEndDate())
                 .location(request.getLocation())
                 .imageUrl(request.getImageUrl())
-                .category(request.getCategory())
+                .category(category)
+                .tags(new HashSet<>(tags))
                 .isFeatured(request.getIsFeatured() != null && request.getIsFeatured())
                 .organizer(organizer)
                 .build();
@@ -85,6 +92,7 @@ public class EventService {
             ticketTypes.add(tt);
         }
         event.setTicketTypes(ticketTypes);
+        tagService.incrementUsageCounts(tags);
 
         Event saved = eventRepository.save(event);
         return toEventResponse(saved);
@@ -98,7 +106,6 @@ public class EventService {
         if (!event.getOrganizer().getId().equals(organizerId)) {
             throw new BadRequestException("You are not the owner of this event");
         }
-
         if (event.getStatus() == EventStatus.CANCELLED) {
             throw new BadRequestException("Cannot update a cancelled event");
         }
@@ -109,8 +116,29 @@ public class EventService {
         if (request.getEndDate() != null) event.setEndDate(request.getEndDate());
         if (request.getLocation() != null) event.setLocation(request.getLocation());
         if (request.getImageUrl() != null) event.setImageUrl(request.getImageUrl());
-        if (request.getCategory() != null) event.setCategory(request.getCategory());
         if (request.getIsFeatured() != null) event.setIsFeatured(request.getIsFeatured());
+
+        if (request.getCategoryId() != null) {
+            Category category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Category", request.getCategoryId()));
+            event.setCategory(category);
+        }
+
+        if (request.getTags() != null) {
+            Set<Tag> oldTags = new HashSet<>(event.getTags());
+            Set<Tag> newTags = tagService.resolveTagList(request.getTags());
+
+            Set<Tag> removedTags = new HashSet<>(oldTags);
+            removedTags.removeAll(newTags);
+            tagService.decrementUsageCounts(removedTags);
+
+            Set<Tag> addedTags = new HashSet<>(newTags);
+            addedTags.removeAll(oldTags);
+            tagService.incrementUsageCounts(addedTags);
+
+            event.getTags().clear();
+            event.getTags().addAll(newTags);
+        }
 
         if (request.getStatus() != null) {
             validateStatusTransition(event.getStatus(), request.getStatus());
@@ -123,7 +151,6 @@ public class EventService {
             if (hasSold) {
                 throw new BadRequestException("Cannot modify ticket types after tickets have been sold");
             }
-
             event.getTicketTypes().clear();
             for (TicketTypeRequest ttReq : request.getTicketTypes()) {
                 TicketType tt = TicketType.builder()
@@ -148,11 +175,11 @@ public class EventService {
         if (!event.getOrganizer().getId().equals(organizerId)) {
             throw new BadRequestException("You are not the owner of this event");
         }
-
         if (event.getStatus() != EventStatus.DRAFT) {
             throw new BadRequestException("Only draft events can be deleted");
         }
 
+        tagService.decrementUsageCounts(event.getTags());
         eventRepository.delete(event);
     }
 
@@ -170,8 +197,11 @@ public class EventService {
     }
 
     private Specification<Event> applyFilters(Specification<Event> spec, EventFilterRequest filter) {
-        if (filter.getCategory() != null) {
-            spec = spec.and(EventSpecification.hasCategory(filter.getCategory()));
+        if (filter.getCategoryId() != null) {
+            spec = spec.and(EventSpecification.hasCategoryId(filter.getCategoryId()));
+        }
+        if (filter.getTag() != null && !filter.getTag().isBlank()) {
+            spec = spec.and(EventSpecification.hasTag(filter.getTag()));
         }
         if (filter.getDateFrom() != null) {
             spec = spec.and(EventSpecification.eventDateAfter(filter.getDateFrom()));
@@ -196,12 +226,10 @@ public class EventService {
         if (filter.getSort() != null) {
             Sort.Direction dir = "desc".equalsIgnoreCase(filter.getDirection())
                     ? Sort.Direction.DESC : Sort.Direction.ASC;
-            switch (filter.getSort()) {
-                case "date" -> sort = Sort.by(dir, "eventDate");
-                case "price" -> sort = Sort.by(dir, "eventDate"); // default sort for price filter
-                case "title" -> sort = Sort.by(dir, "title");
-                default -> sort = Sort.by(dir, "eventDate");
-            }
+            sort = switch (filter.getSort()) {
+                case "title" -> Sort.by(dir, "title");
+                default -> Sort.by(dir, "eventDate");
+            };
         }
         return PageRequest.of(
                 filter.getPage() != null ? filter.getPage() : 0,
@@ -210,7 +238,7 @@ public class EventService {
         );
     }
 
-    private EventResponse toEventResponse(Event event) {
+    public EventResponse toEventResponse(Event event) {
         EventResponse.OrganizerDto orgDto = EventResponse.OrganizerDto.builder()
                 .id(event.getOrganizer().getId())
                 .fullName(event.getOrganizer().getFullName())
@@ -221,6 +249,21 @@ public class EventService {
                 .map(this::toTicketTypeResponse)
                 .toList();
 
+        CategoryResponse categoryResponse = event.getCategory() != null
+                ? CategoryResponse.builder()
+                    .id(event.getCategory().getId())
+                    .name(event.getCategory().getName())
+                    .slug(event.getCategory().getSlug())
+                    .icon(event.getCategory().getIcon())
+                    .displayOrder(event.getCategory().getDisplayOrder())
+                    .build()
+                : null;
+
+        List<TagResponse> tagResponses = event.getTags().stream()
+                .map(tagService::toTagResponse)
+                .sorted((a, b) -> a.getName().compareTo(b.getName()))
+                .toList();
+
         return EventResponse.builder()
                 .id(event.getId())
                 .title(event.getTitle())
@@ -229,7 +272,8 @@ public class EventService {
                 .endDate(event.getEndDate())
                 .location(event.getLocation())
                 .imageUrl(event.getImageUrl())
-                .category(event.getCategory().name())
+                .category(categoryResponse)
+                .tags(tagResponses)
                 .status(event.getStatus().name())
                 .isFeatured(event.getIsFeatured())
                 .organizer(orgDto)

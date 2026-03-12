@@ -1,3 +1,18 @@
+export interface CategoryInfo {
+  id: number;
+  name: string;
+  slug: string;
+  icon?: string;
+  displayOrder: number;
+}
+
+export interface TagInfo {
+  id: number;
+  name: string;
+  slug: string;
+  usageCount: number;
+}
+
 export interface Event {
   id: number;
   title: string;
@@ -6,7 +21,8 @@ export interface Event {
   endDate?: string;
   location: string;
   imageUrl?: string;
-  category: string;
+  category?: CategoryInfo;
+  tags: TagInfo[];
   status: string;
   isFeatured: boolean;
   organizer: OrganizerInfo;
@@ -37,7 +53,8 @@ export interface CreateEventRequest {
   endDate?: string;
   location: string;
   imageUrl?: string;
-  category: string;
+  categoryId: number;
+  tags?: string[];
   isFeatured?: boolean;
   ticketTypes: TicketTypeRequest[];
 }
@@ -55,14 +72,16 @@ export interface UpdateEventRequest {
   endDate?: string;
   location?: string;
   imageUrl?: string;
-  category?: string;
+  categoryId?: number;
+  tags?: string[];
   status?: string;
   isFeatured?: boolean;
   ticketTypes?: TicketTypeRequest[];
 }
 
 export interface EventFilterParams {
-  category?: string;
+  categoryId?: number;
+  tag?: string;
   dateFrom?: string;
   dateTo?: string;
   priceMin?: number;
@@ -82,15 +101,5 @@ export interface PageResponse<T> {
   number: number;
   size: number;
 }
-
-export const EVENT_CATEGORIES = [
-  "MUSIC",
-  "SPORTS",
-  "CONFERENCE",
-  "THEATER",
-  "FILM",
-  "WORKSHOP",
-  "OTHER",
-] as const;
 
 export const EVENT_STATUSES = ["DRAFT", "PUBLISHED", "CANCELLED"] as const;

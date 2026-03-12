@@ -5,7 +5,9 @@ import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "EVENTS")
@@ -40,9 +42,23 @@ public class Event {
     @Column(name = "IMAGE_URL", length = 500)
     private String imageUrl;
 
+    // Legacy enum column — kept read-only for data migration only, do not use in new code
     @Enumerated(EnumType.STRING)
-    @Column(name = "CATEGORY", nullable = false, length = 50)
-    private EventCategory category;
+    @Column(name = "CATEGORY", length = 50, insertable = false, updatable = false)
+    private EventCategory categoryLegacy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "CATEGORY_ID")
+    private Category category;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "EVENT_TAGS",
+            joinColumns = @JoinColumn(name = "EVENT_ID"),
+            inverseJoinColumns = @JoinColumn(name = "TAG_ID")
+    )
+    @Builder.Default
+    private Set<Tag> tags = new HashSet<>();
 
     @Enumerated(EnumType.STRING)
     @Column(name = "STATUS", nullable = false, length = 20)
