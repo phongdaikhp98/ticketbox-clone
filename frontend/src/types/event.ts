@@ -25,6 +25,7 @@ export interface Event {
   tags: TagInfo[];
   status: string;
   isFeatured: boolean;
+  hasSeatMap: boolean;
   organizer: OrganizerInfo;
   ticketTypes: TicketTypeInfo[];
   createdDate: string;

@@ -119,7 +119,7 @@ function CreateEventForm() {
       };
 
       const created = await eventService.createEvent(request);
-      router.push(`/events/${created.id}`);
+      router.push(`/events/${created.id}/edit`);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { message?: string; data?: Record<string, string> } } };
       if (error.response?.data?.data) {

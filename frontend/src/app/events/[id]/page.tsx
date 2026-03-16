@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
+import SeatMapViewer from "@/components/SeatMapViewer";
 import { eventService } from "@/lib/event-service";
 import { cartService } from "@/lib/cart-service";
 import { wishlistService } from "@/lib/wishlist-service";
@@ -250,6 +251,15 @@ export default function EventDetailPage() {
               )}
             </div>
 
+            {event.hasSeatMap ? (
+              <div className="bg-zinc-800 rounded-lg p-6">
+                <h3 className="text-white font-semibold mb-4">Chọn chỗ ngồi</h3>
+                <SeatMapViewer
+                  eventId={event.id}
+                  onSeatSelected={() => refreshCart()}
+                />
+              </div>
+            ) : (
             <div className="bg-zinc-800 rounded-lg p-6">
               <h3 className="text-white font-semibold mb-4">Tickets</h3>
               <div className="space-y-3">
@@ -320,6 +330,7 @@ export default function EventDetailPage() {
                 ))}
               </div>
             </div>
+            )}
           </div>
         ) : null}
       </main>

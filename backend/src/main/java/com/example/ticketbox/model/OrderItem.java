@@ -33,6 +33,10 @@ public class OrderItem {
     @JoinColumn(name = "TICKET_TYPE_ID", nullable = false)
     private TicketType ticketType;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "SEAT_ID")
+    private Seat seat;
+
     @Column(name = "QUANTITY", nullable = false)
     private Integer quantity;
 

@@ -15,6 +15,7 @@ public class TicketResponse {
 
     private Long id;
     private String ticketCode;
+    private String seatCode;
     private String status;
     private String ticketTypeName;
     private String eventTitle;

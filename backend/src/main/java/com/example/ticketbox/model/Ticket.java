@@ -36,6 +36,13 @@ public class Ticket {
     @JoinColumn(name = "TICKET_TYPE_ID", nullable = false)
     private TicketType ticketType;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "SEAT_ID")
+    private Seat seat;
+
+    @Column(name = "SEAT_CODE", length = 20)
+    private String seatCode;
+
     @Column(name = "TICKET_CODE", nullable = false, unique = true, length = 30)
     private String ticketCode;
 

@@ -9,6 +9,7 @@ import com.example.ticketbox.exception.ResourceNotFoundException;
 import com.example.ticketbox.model.*;
 import com.example.ticketbox.repository.CartItemRepository;
 import com.example.ticketbox.repository.OrderRepository;
+import com.example.ticketbox.repository.SeatRepository;
 import com.example.ticketbox.repository.TicketTypeRepository;
 import com.example.ticketbox.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -34,6 +35,8 @@ public class OrderService {
     private final CartItemRepository cartItemRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final UserRepository userRepository;
+    private final SeatRepository seatRepository;
+    private final SeatReservationService seatReservationService;
     private final VNPayService vnPayService;
     private final TicketService ticketService;
     private final EmailService emailService;
@@ -76,6 +79,7 @@ public class OrderService {
                     .order(order)
                     .event(tt.getEvent())
                     .ticketType(tt)
+                    .seat(cartItem.getSeat())
                     .quantity(cartItem.getQuantity())
                     .unitPrice(tt.getPrice())
                     .ticketTypeName(tt.getName())
@@ -165,6 +169,18 @@ public class OrderService {
                 order.setVnpayTransactionNo(transactionNo);
                 orderRepository.save(order);
                 return Map.of("RspCode", "04", "Message", "Stock conflict");
+            }
+        }
+
+        // Update seat status to SOLD for seat-based items
+        for (OrderItem item : order.getOrderItems()) {
+            if (item.getSeat() != null) {
+                Seat seat = seatRepository.findById(item.getSeat().getId()).orElse(null);
+                if (seat != null) {
+                    seat.setStatus(SeatStatus.SOLD);
+                    seatRepository.save(seat);
+                    seatReservationService.releaseSeat(seat.getId());
+                }
             }
         }
 

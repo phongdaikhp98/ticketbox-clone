@@ -69,6 +69,10 @@ public class Event {
     @Builder.Default
     private Boolean isFeatured = false;
 
+    @Column(name = "HAS_SEAT_MAP", nullable = false)
+    @Builder.Default
+    private boolean hasSeatMap = false;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ORGANIZER_ID", nullable = false)
     private User organizer;

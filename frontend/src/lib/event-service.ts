@@ -21,6 +21,11 @@ export const eventService = {
     return res.data.data;
   },
 
+  async getEventForManage(id: number): Promise<Event> {
+    const res = await api.get<ApiResponse<Event>>(`/v1/events/${id}/manage`);
+    return res.data.data;
+  },
+
   async getFeaturedEvents(): Promise<Event[]> {
     const res = await api.get<ApiResponse<Event[]>>("/v1/events/featured");
     return res.data.data;

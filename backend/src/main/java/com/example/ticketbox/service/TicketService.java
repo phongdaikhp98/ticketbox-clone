@@ -42,11 +42,15 @@ public class TicketService {
                 String ticketCode = generateTicketCode();
                 String qrData = buildQrData(ticketCode, item.getEvent().getId(), order.getUser().getId());
 
+                String seatCode = item.getSeat() != null ? item.getSeat().getSeatCode() : null;
+
                 Ticket ticket = Ticket.builder()
                         .orderItem(item)
                         .user(order.getUser())
                         .event(item.getEvent())
                         .ticketType(item.getTicketType())
+                        .seat(item.getSeat())
+                        .seatCode(seatCode)
                         .ticketCode(ticketCode)
                         .qrData(qrData)
                         .build();
@@ -199,6 +203,7 @@ public class TicketService {
         return TicketResponse.builder()
                 .id(ticket.getId())
                 .ticketCode(ticket.getTicketCode())
+                .seatCode(ticket.getSeatCode())
                 .status(ticket.getStatus().name())
                 .ticketTypeName(ticket.getTicketType().getName())
                 .eventTitle(event.getTitle())

@@ -26,6 +26,7 @@ public class EventResponse {
     private List<TagResponse> tags;
     private String status;
     private Boolean isFeatured;
+    private boolean hasSeatMap;
     private OrganizerDto organizer;
     private List<TicketTypeResponse> ticketTypes;
     private LocalDateTime createdDate;

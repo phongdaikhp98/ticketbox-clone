@@ -160,6 +160,9 @@ export default function CartPage() {
                       {item.event.title}
                     </Link>
                     <p className="text-gray-400 text-sm">{item.ticketType.name}</p>
+                    {item.seatCode && (
+                      <p className="text-blue-400 text-xs font-medium">Ghế: {item.seatCode}</p>
+                    )}
                     <p className="text-gray-500 text-xs">
                       {formatDate(item.event.eventDate)} - {item.event.location}
                     </p>
@@ -168,6 +171,7 @@ export default function CartPage() {
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
+                    {!item.seatCode && (
                     <div className="flex items-center border border-zinc-600 rounded">
                       <button
                         onClick={() =>
@@ -194,6 +198,7 @@ export default function CartPage() {
                         +
                       </button>
                     </div>
+                    )}
                     <p className="text-white font-semibold min-w-[100px] text-right">
                       {formatPrice(item.ticketType.price * item.quantity)}
                     </p>

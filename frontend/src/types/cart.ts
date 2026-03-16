@@ -1,6 +1,7 @@
 export interface CartItemResponse {
   id: number;
   quantity: number;
+  seatCode?: string;
   ticketType: CartTicketTypeSummary;
   event: CartEventSummary;
   createdDate: string;

@@ -74,6 +74,17 @@ public class EventController {
         return ResponseEntity.ok(ApiResponse.success("Event deleted", null));
     }
 
+    @GetMapping("/{id}/manage")
+    @PreAuthorize("hasRole('ORGANIZER') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<EventResponse>> getEventForManage(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        EventResponse event = eventService.getEventForManage(id, userDetails.getId(), isAdmin);
+        return ResponseEntity.ok(ApiResponse.success(event));
+    }
+
     @GetMapping("/my-events")
     @PreAuthorize("hasRole('ORGANIZER') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<EventResponse>>> getMyEvents(

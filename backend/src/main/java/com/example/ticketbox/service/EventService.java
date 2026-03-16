@@ -6,6 +6,7 @@ import com.example.ticketbox.exception.ResourceNotFoundException;
 import com.example.ticketbox.model.*;
 import com.example.ticketbox.repository.CategoryRepository;
 import com.example.ticketbox.repository.EventRepository;
+import com.example.ticketbox.repository.SeatMapRepository;
 import com.example.ticketbox.repository.UserRepository;
 import com.example.ticketbox.specification.EventSpecification;
 import jakarta.transaction.Transactional;
@@ -29,6 +30,7 @@ public class EventService {
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final SeatMapRepository seatMapRepository;
     private final TagService tagService;
 
     // === Public ===
@@ -46,6 +48,15 @@ public class EventService {
                 .orElseThrow(() -> new ResourceNotFoundException("Event", id));
         if (event.getStatus() != EventStatus.PUBLISHED) {
             throw new ResourceNotFoundException("Event", id);
+        }
+        return toEventResponse(event);
+    }
+
+    public EventResponse getEventForManage(Long eventId, Long userId, boolean isAdmin) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Event", eventId));
+        if (!isAdmin && !event.getOrganizer().getId().equals(userId)) {
+            throw new ResourceNotFoundException("Event", eventId);
         }
         return toEventResponse(event);
     }
@@ -145,11 +156,14 @@ public class EventService {
             event.setStatus(request.getStatus());
         }
 
-        if (request.getTicketTypes() != null) {
+        if (request.getTicketTypes() != null && isTicketTypesChanged(event.getTicketTypes(), request.getTicketTypes())) {
             boolean hasSold = event.getTicketTypes().stream()
                     .anyMatch(tt -> tt.getSoldCount() > 0);
             if (hasSold) {
                 throw new BadRequestException("Cannot modify ticket types after tickets have been sold");
+            }
+            if (seatMapRepository.existsByEventId(eventId)) {
+                throw new BadRequestException("Không thể thay đổi loại vé khi đã có sơ đồ chỗ ngồi. Vui lòng xóa sơ đồ trước.");
             }
             event.getTicketTypes().clear();
             for (TicketTypeRequest ttReq : request.getTicketTypes()) {
@@ -276,6 +290,7 @@ public class EventService {
                 .tags(tagResponses)
                 .status(event.getStatus().name())
                 .isFeatured(event.getIsFeatured())
+                .hasSeatMap(event.isHasSeatMap())
                 .organizer(orgDto)
                 .ticketTypes(ttResponses)
                 .createdDate(event.getCreatedDate())
@@ -292,5 +307,17 @@ public class EventService {
                 .soldCount(tt.getSoldCount())
                 .availableCount(tt.getCapacity() - tt.getSoldCount())
                 .build();
+    }
+
+    private boolean isTicketTypesChanged(List<TicketType> existing, List<TicketTypeRequest> incoming) {
+        if (existing.size() != incoming.size()) return true;
+        for (int i = 0; i < existing.size(); i++) {
+            TicketType e = existing.get(i);
+            TicketTypeRequest r = incoming.get(i);
+            if (!e.getName().equals(r.getName())) return true;
+            if (e.getPrice().compareTo(r.getPrice()) != 0) return true;
+            if (!e.getCapacity().equals(r.getCapacity())) return true;
+        }
+        return false;
     }
 }

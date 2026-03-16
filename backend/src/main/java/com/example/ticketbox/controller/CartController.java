@@ -42,6 +42,14 @@ public class CartController {
         return ResponseEntity.ok(ApiResponse.success(item));
     }
 
+    @PostMapping("/seat-items")
+    public ResponseEntity<ApiResponse<CartItemResponse>> addSeatToCart(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @Valid @RequestBody AddSeatToCartRequest request) {
+        CartItemResponse item = cartService.addSeatToCart(userDetails.getId(), request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(item));
+    }
+
     @DeleteMapping("/items/{id}")
     public ResponseEntity<ApiResponse<Void>> removeCartItem(
             @AuthenticationPrincipal UserDetailsImpl userDetails,

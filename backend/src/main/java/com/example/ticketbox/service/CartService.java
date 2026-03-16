@@ -1,5 +1,6 @@
 package com.example.ticketbox.service;
 
+import com.example.ticketbox.dto.AddSeatToCartRequest;
 import com.example.ticketbox.dto.AddToCartRequest;
 import com.example.ticketbox.dto.CartItemResponse;
 import com.example.ticketbox.dto.CartResponse;
@@ -8,9 +9,12 @@ import com.example.ticketbox.exception.BadRequestException;
 import com.example.ticketbox.exception.ResourceNotFoundException;
 import com.example.ticketbox.model.CartItem;
 import com.example.ticketbox.model.Event;
+import com.example.ticketbox.model.Seat;
+import com.example.ticketbox.model.SeatStatus;
 import com.example.ticketbox.model.TicketType;
 import com.example.ticketbox.model.User;
 import com.example.ticketbox.repository.CartItemRepository;
+import com.example.ticketbox.repository.SeatRepository;
 import com.example.ticketbox.repository.TicketTypeRepository;
 import com.example.ticketbox.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -28,6 +32,8 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final UserRepository userRepository;
+    private final SeatRepository seatRepository;
+    private final SeatReservationService seatReservationService;
 
     public CartResponse getCart(Long userId) {
         List<CartItem> items = cartItemRepository.findByUserId(userId);
@@ -97,14 +103,63 @@ public class CartService {
     }
 
     @Transactional
+    public CartItemResponse addSeatToCart(Long userId, AddSeatToCartRequest request) {
+        Seat seat = seatRepository.findById(request.getSeatId())
+                .orElseThrow(() -> new ResourceNotFoundException("Seat", request.getSeatId()));
+
+        if (seat.getStatus() == SeatStatus.SOLD) {
+            throw new BadRequestException("Ghế đã được bán");
+        }
+        if (seat.getStatus() == SeatStatus.BLOCKED) {
+            throw new BadRequestException("Ghế đang bị khóa");
+        }
+
+        // Must have an active reservation
+        if (!seatReservationService.isReservedByUser(seat.getId(), userId)) {
+            throw new BadRequestException("Bạn chưa giữ chỗ ghế này. Vui lòng chọn ghế trước.");
+        }
+
+        // Already in cart?
+        if (cartItemRepository.existsByUserIdAndSeatId(userId, seat.getId())) {
+            throw new BadRequestException("Ghế này đã có trong giỏ hàng");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+
+        TicketType ticketType = seat.getSection().getTicketType();
+
+        CartItem cartItem = CartItem.builder()
+                .user(user)
+                .ticketType(ticketType)
+                .seat(seat)
+                .quantity(1)
+                .build();
+
+        return toCartItemResponse(cartItemRepository.save(cartItem));
+    }
+
+    @Transactional
     public void removeCartItem(Long userId, Long cartItemId) {
         CartItem cartItem = cartItemRepository.findByIdAndUserId(cartItemId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("CartItem", cartItemId));
+
+        // Release seat reservation if seat-based item
+        if (cartItem.getSeat() != null) {
+            seatReservationService.releaseSeat(cartItem.getSeat().getId());
+        }
+
         cartItemRepository.delete(cartItem);
     }
 
     @Transactional
     public void clearCart(Long userId) {
+        List<CartItem> items = cartItemRepository.findByUserId(userId);
+        for (CartItem item : items) {
+            if (item.getSeat() != null) {
+                seatReservationService.releaseSeat(item.getSeat().getId());
+            }
+        }
         cartItemRepository.deleteByUserId(userId);
     }
 
@@ -112,9 +167,12 @@ public class CartService {
         TicketType tt = item.getTicketType();
         Event event = tt.getEvent();
 
+        String seatCode = item.getSeat() != null ? item.getSeat().getSeatCode() : null;
+
         return CartItemResponse.builder()
                 .id(item.getId())
                 .quantity(item.getQuantity())
+                .seatCode(seatCode)
                 .ticketType(CartItemResponse.TicketTypeSummary.builder()
                         .id(tt.getId())
                         .name(tt.getName())

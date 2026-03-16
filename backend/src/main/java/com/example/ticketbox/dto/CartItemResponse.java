@@ -16,6 +16,7 @@ public class CartItemResponse {
 
     private Long id;
     private Integer quantity;
+    private String seatCode;
     private TicketTypeSummary ticketType;
     private EventSummary event;
     private LocalDateTime createdDate;

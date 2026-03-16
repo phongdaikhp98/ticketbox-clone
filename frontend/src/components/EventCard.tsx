@@ -56,7 +56,7 @@ export default function EventCard({ event, showStatus, onEdit, onDelete }: Event
 
   return (
     <div className="bg-zinc-800 rounded-lg overflow-hidden hover:ring-1 hover:ring-zinc-600 transition">
-      <Link href={`/events/${event.id}`}>
+      <Link href={onEdit ? `/events/${event.id}/edit` : `/events/${event.id}`}>
         <div className="h-48 bg-zinc-700 relative">
           {event.imageUrl ? (
             <img

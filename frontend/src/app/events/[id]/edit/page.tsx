@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import Header from "@/components/Header";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageUpload from "@/components/ImageUpload";
@@ -55,7 +56,7 @@ function EditEventForm() {
   useEffect(() => {
     if (!id) return;
     eventService
-      .getEventById(id)
+      .getEventForManage(id)
       .then((data) => {
         setEvent(data);
         setForm({
@@ -78,7 +79,12 @@ function EditEventForm() {
           }))
         );
       })
-      .catch(() => setError("Event not found"))
+      .catch((err) => {
+        const status = err?.response?.status;
+        const msg = err?.response?.data?.message || err?.message || "Unknown error";
+        console.error("Load event failed:", status, msg, err);
+        setError(`Không tải được sự kiện (${status || "network"}): ${msg}`);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -353,6 +359,26 @@ function EditEventForm() {
               className="rounded"
             />
             <label className="text-gray-400 text-sm">Sự kiện nổi bật</label>
+          </div>
+        </div>
+
+        {/* Seat Map section */}
+        <div className="bg-zinc-800 rounded-lg p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-white font-semibold">Sơ đồ chỗ ngồi</h2>
+              <p className="text-gray-400 text-sm mt-1">
+                {event.hasSeatMap
+                  ? "Sự kiện này đã có sơ đồ chỗ ngồi."
+                  : "Tùy chọn: cho phép khách hàng chọn ghế cụ thể."}
+              </p>
+            </div>
+            <Link
+              href={`/organizer/events/${id}/seat-map`}
+              className="px-4 py-2 bg-zinc-700 text-gray-300 rounded hover:bg-zinc-600 transition text-sm"
+            >
+              {event.hasSeatMap ? "Quản lý Seat Map →" : "Tạo Seat Map →"}
+            </Link>
           </div>
         </div>
 
