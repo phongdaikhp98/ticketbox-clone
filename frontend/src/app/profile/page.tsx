@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ImageUpload from "@/components/ImageUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { userService } from "@/lib/user-service";
 import { UpdateProfileRequest } from "@/types/auth";
@@ -72,9 +73,19 @@ function ProfileForm() {
       </div>
 
       <div className="bg-zinc-800 rounded-lg p-6">
-        <div className="mb-6 pb-4 border-b border-zinc-700">
-          <p className="text-gray-400 text-sm">Email</p>
-          <p className="text-white">{user.email}</p>
+        {/* Avatar display + upload */}
+        <div className="flex items-center gap-5 mb-6 pb-6 border-b border-zinc-700">
+          <ImageUpload
+            folder="avatars"
+            aspectRatio="square"
+            currentUrl={form.avatarUrl || undefined}
+            onUpload={(url) => setForm((prev) => ({ ...prev, avatarUrl: url }))}
+          />
+          <div>
+            <p className="text-white font-medium text-lg">{user.fullName || user.email}</p>
+            <p className="text-gray-400 text-sm">{user.email}</p>
+            <p className="text-gray-500 text-xs mt-1">Click vào ảnh để thay đổi avatar</p>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -125,18 +136,6 @@ function ProfileForm() {
             />
           </div>
 
-          <div>
-            <label className="block text-gray-400 text-sm mb-1">Avatar URL</label>
-            <input
-              type="text"
-              name="avatarUrl"
-              value={form.avatarUrl}
-              onChange={handleChange}
-              className="w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white focus:outline-none focus:border-primary"
-              placeholder="https://example.com/avatar.jpg"
-              maxLength={500}
-            />
-          </div>
 
           <div className="pt-4">
             <button

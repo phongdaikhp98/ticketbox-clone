@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import ImageUpload from "@/components/ImageUpload";
 import { eventService } from "@/lib/event-service";
 import { categoryService } from "@/lib/category-service";
 import { Event, UpdateEventRequest, TicketTypeRequest, CategoryInfo } from "@/types/event";
@@ -290,33 +291,29 @@ function EditEventForm() {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-gray-400 text-sm mb-1">Thể loại</label>
-              <select
-                name="categoryId"
-                value={form.categoryId}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white focus:outline-none focus:border-primary"
-              >
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.icon} {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-gray-400 text-sm mb-1">Image URL</label>
-              <input
-                type="text"
-                name="imageUrl"
-                value={form.imageUrl}
-                onChange={handleChange}
-                className="w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white focus:outline-none focus:border-primary"
-              />
-            </div>
+          <div>
+            <label className="block text-gray-400 text-sm mb-1">Thể loại</label>
+            <select
+              name="categoryId"
+              value={form.categoryId}
+              onChange={handleChange}
+              className="w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white focus:outline-none focus:border-primary"
+            >
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.icon} {cat.name}
+                </option>
+              ))}
+            </select>
           </div>
+
+          <ImageUpload
+            label="Ảnh banner sự kiện"
+            folder="events"
+            aspectRatio="video"
+            currentUrl={form.imageUrl || undefined}
+            onUpload={(url) => setForm((prev) => ({ ...prev, imageUrl: url }))}
+          />
 
           <div>
             <label className="block text-gray-400 text-sm mb-1">Tags (Enter hoặc dấu phẩy để thêm)</label>

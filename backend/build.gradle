@@ -58,6 +58,9 @@ dependencies {
     // PDF generation (OpenPDF)
     implementation 'com.github.librepdf:openpdf:2.0.3'
 
+    // Cloudinary (image upload)
+    implementation 'com.cloudinary:cloudinary-http44:1.38.0'
+
     // Testing
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
