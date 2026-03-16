@@ -35,6 +35,10 @@ export const orderService = {
     return res.data.data;
   },
 
+  async cancelOrder(id: number): Promise<void> {
+    await api.delete(`/v1/orders/${id}/cancel`);
+  },
+
   async verifyVnPayReturn(params: Record<string, string>): Promise<{ RspCode: string; Message: string }> {
     const res = await api.post<ApiResponse<{ RspCode: string; Message: string }>>(
       "/v1/payment/vnpay/verify-return",

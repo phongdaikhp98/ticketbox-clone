@@ -36,9 +36,9 @@ export interface CheckoutRequest {
 }
 
 export const ORDER_STATUSES: Record<string, { label: string; color: string }> = {
-  PENDING: { label: "Chờ thanh toán", color: "bg-yellow-100 text-yellow-800" },
-  COMPLETED: { label: "Hoàn thành", color: "bg-green-100 text-green-800" },
-  CANCELLED: { label: "Đã hủy", color: "bg-red-100 text-red-800" },
+  PENDING: { label: "Chờ thanh toán", color: "bg-yellow-500/20 text-yellow-400" },
+  COMPLETED: { label: "Hoàn thành", color: "bg-green-500/20 text-green-400" },
+  CANCELLED: { label: "Đã hủy", color: "bg-zinc-600 text-zinc-300" },
 };
 
 export const PAYMENT_METHODS: Record<string, string> = {

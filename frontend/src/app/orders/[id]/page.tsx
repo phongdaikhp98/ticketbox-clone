@@ -16,6 +16,8 @@ export default function OrderDetailPage() {
   const [error, setError] = useState("");
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState("");
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
 
   const fetchOrder = async () => {
     try {
@@ -48,6 +50,33 @@ export default function OrderDetailPage() {
     } finally {
       setPaying(false);
     }
+  };
+
+  const handleCancel = async () => {
+    if (!confirm("Bạn có chắc muốn hủy đơn hàng này không?")) return;
+    setCancelling(true);
+    setCancelError("");
+    try {
+      await orderService.cancelOrder(id);
+      await fetchOrder();
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Hủy đơn hàng thất bại"
+          : "Hủy đơn hàng thất bại";
+      setCancelError(msg);
+    } finally {
+      setCancelling(false);
+    }
+  };
+
+  const canCancel = (order: OrderResponse): boolean => {
+    if (order.status !== "PENDING") return false;
+    const eventDate = order.orderItems[0]?.event?.eventDate;
+    if (!eventDate) return true;
+    const cutoff = new Date();
+    cutoff.setHours(cutoff.getHours() + 24);
+    return new Date(eventDate) > cutoff;
   };
 
   const formatPrice = (price: number) => {
@@ -181,21 +210,41 @@ export default function OrderDetailPage() {
                       {payError}
                     </div>
                   )}
+                  {cancelError && (
+                    <div className="bg-red-500/10 border border-red-500 rounded-lg p-3 text-red-400 text-sm">
+                      {cancelError}
+                    </div>
+                  )}
                   <button
                     onClick={handlePay}
-                    disabled={paying}
+                    disabled={paying || cancelling}
                     className="w-full py-3 bg-primary text-white rounded-lg hover:bg-green-600 transition font-medium disabled:opacity-50"
                   >
                     {paying ? "Đang xử lý..." : "Thanh toán"}
                   </button>
+                  {canCancel(order) && (
+                    <button
+                      onClick={handleCancel}
+                      disabled={cancelling || paying}
+                      className="w-full py-3 bg-zinc-700 text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500/10 transition font-medium disabled:opacity-50"
+                    >
+                      {cancelling ? "Đang hủy..." : "Hủy đơn hàng"}
+                    </button>
+                  )}
                 </div>
               )}
 
               {order.status === "COMPLETED" && (
                 <div className="bg-green-500/10 border border-green-500 rounded-lg p-4 text-center">
                   <p className="text-green-400 font-medium">
-                    Payment completed! Enjoy the event.
+                    Thanh toán thành công! Chúc bạn có một trải nghiệm tuyệt vời.
                   </p>
+                </div>
+              )}
+
+              {order.status === "CANCELLED" && (
+                <div className="bg-zinc-700/50 border border-zinc-600 rounded-lg p-4 text-center">
+                  <p className="text-gray-400 font-medium">Đơn hàng đã được hủy.</p>
                 </div>
               )}
             </div>

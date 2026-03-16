@@ -44,4 +44,12 @@ public class OrderController {
         OrderResponse order = orderService.getOrderDetail(userDetails.getId(), id);
         return ResponseEntity.ok(ApiResponse.success(order));
     }
+
+    @DeleteMapping("/{id}/cancel")
+    public ResponseEntity<ApiResponse<Void>> cancelOrder(
+            @AuthenticationPrincipal UserDetailsImpl userDetails,
+            @PathVariable Long id) {
+        orderService.cancelOrder(id, userDetails.getId());
+        return ResponseEntity.ok(ApiResponse.success("Đơn hàng đã được hủy thành công", null));
+    }
 }

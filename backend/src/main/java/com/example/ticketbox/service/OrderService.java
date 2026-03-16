@@ -22,6 +22,7 @@ import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -194,6 +195,41 @@ public class OrderService {
         emailService.sendPaymentSuccessEmail(order.getId());
 
         return Map.of("RspCode", "00", "Message", "Confirm Success");
+    }
+
+    @Transactional
+    public void cancelOrder(Long orderId, Long userId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
+
+        if (!order.getUser().getId().equals(userId))
+            throw new BadRequestException("Bạn không có quyền hủy đơn hàng này");
+
+        if (order.getStatus() != OrderStatus.PENDING)
+            throw new BadRequestException("Chỉ có thể hủy đơn hàng chưa thanh toán (PENDING)");
+
+        LocalDateTime cutoff = LocalDateTime.now().plusHours(24);
+        for (OrderItem item : order.getOrderItems()) {
+            LocalDateTime eventDate = item.getEvent().getEventDate();
+            if (eventDate != null && eventDate.isBefore(cutoff)) {
+                throw new BadRequestException(
+                        "Không thể hủy: sự kiện '" + item.getEvent().getTitle() + "' bắt đầu trong vòng 24 giờ");
+            }
+        }
+
+        for (OrderItem item : order.getOrderItems()) {
+            if (item.getSeat() != null) {
+                Seat seat = seatRepository.findById(item.getSeat().getId()).orElse(null);
+                if (seat != null) {
+                    seat.setStatus(SeatStatus.AVAILABLE);
+                    seatRepository.save(seat);
+                }
+                seatReservationService.releaseSeat(item.getSeat().getId());
+            }
+        }
+
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
     }
 
     public Page<OrderResponse> getMyOrders(Long userId, int page, int size) {
