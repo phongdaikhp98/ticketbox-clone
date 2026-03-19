@@ -195,11 +195,38 @@ export default function OrderDetailPage() {
                   ))}
                 </div>
 
-                <div className="border-t border-zinc-700 mt-4 pt-4 flex justify-between">
-                  <span className="text-gray-400 font-medium">Tổng cộng</span>
-                  <span className="text-2xl font-bold text-primary">
-                    {formatPrice(order.totalAmount)}
-                  </span>
+                <div className="border-t border-zinc-700 mt-4 pt-4 space-y-2">
+                  {order.discountAmount && order.discountAmount > 0 ? (
+                    <>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-400">Tạm tính</span>
+                        <span className="text-gray-300">
+                          {formatPrice(order.originalAmount ?? order.totalAmount)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-green-400">
+                          Giảm giá{order.promoCode ? ` (${order.promoCode})` : ""}
+                        </span>
+                        <span className="text-green-400">
+                          -{formatPrice(order.discountAmount)}
+                        </span>
+                      </div>
+                      <div className="flex justify-between pt-2 border-t border-zinc-600">
+                        <span className="text-gray-400 font-medium">Tổng cộng</span>
+                        <span className="text-2xl font-bold text-primary">
+                          {formatPrice(order.totalAmount)}
+                        </span>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex justify-between">
+                      <span className="text-gray-400 font-medium">Tổng cộng</span>
+                      <span className="text-2xl font-bold text-primary">
+                        {formatPrice(order.totalAmount)}
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 

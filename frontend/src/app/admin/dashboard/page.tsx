@@ -4,7 +4,9 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { adminService } from "@/lib/admin-service";
+import { promoService } from "@/lib/promo-service";
 import { AdminOverview } from "@/types/admin";
+import { PromoCodeResponse, PromoCodeRequest } from "@/types/promo";
 
 const formatCurrency = (amount: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
@@ -34,10 +36,30 @@ const ORDER_STATUS_COLORS: Record<string, string> = {
   CANCELLED: "bg-red-900/30 text-red-400",
 };
 
+const EMPTY_PROMO: PromoCodeRequest = {
+  code: "",
+  discountType: "PERCENTAGE",
+  discountValue: 0,
+  minOrderAmount: undefined,
+  usageLimit: undefined,
+  startDate: undefined,
+  endDate: undefined,
+  active: true,
+};
+
 export default function AdminDashboardPage() {
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // Promo code states
+  const [promos, setPromos] = useState<PromoCodeResponse[]>([]);
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [showPromoModal, setShowPromoModal] = useState(false);
+  const [editingPromo, setEditingPromo] = useState<PromoCodeResponse | null>(null);
+  const [promoForm, setPromoForm] = useState<PromoCodeRequest>(EMPTY_PROMO);
+  const [promoSaving, setPromoSaving] = useState(false);
+  const [promoError, setPromoError] = useState("");
 
   useEffect(() => {
     adminService
@@ -45,7 +67,68 @@ export default function AdminDashboardPage() {
       .then(setOverview)
       .catch(() => setError("Không thể tải dữ liệu dashboard"))
       .finally(() => setLoading(false));
+    loadPromos();
   }, []);
+
+  const loadPromos = () => {
+    setPromoLoading(true);
+    promoService.getAll().then(setPromos).catch(() => {}).finally(() => setPromoLoading(false));
+  };
+
+  const openCreatePromo = () => {
+    setEditingPromo(null);
+    setPromoForm(EMPTY_PROMO);
+    setPromoError("");
+    setShowPromoModal(true);
+  };
+
+  const openEditPromo = (promo: PromoCodeResponse) => {
+    setEditingPromo(promo);
+    setPromoForm({
+      code: promo.code,
+      discountType: promo.discountType,
+      discountValue: promo.discountValue,
+      minOrderAmount: promo.minOrderAmount,
+      usageLimit: promo.usageLimit,
+      startDate: promo.startDate ? promo.startDate.slice(0, 16) : undefined,
+      endDate: promo.endDate ? promo.endDate.slice(0, 16) : undefined,
+      active: promo.active,
+    });
+    setPromoError("");
+    setShowPromoModal(true);
+  };
+
+  const handleSavePromo = async () => {
+    setPromoSaving(true);
+    setPromoError("");
+    try {
+      if (editingPromo) {
+        await promoService.update(editingPromo.id, promoForm);
+      } else {
+        await promoService.create(promoForm);
+      }
+      setShowPromoModal(false);
+      loadPromos();
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Lưu thất bại"
+          : "Lưu thất bại";
+      setPromoError(msg);
+    } finally {
+      setPromoSaving(false);
+    }
+  };
+
+  const handleTogglePromo = async (id: number) => {
+    try {
+      const updated = await promoService.toggle(id);
+      setPromos((prev) => prev.map((p) => (p.id === id ? updated : p)));
+    } catch {}
+  };
+
+  const formatCurrencyShort = (val?: number) =>
+    val != null ? new Intl.NumberFormat("vi-VN").format(val) + "đ" : "—";
 
   return (
     <ProtectedRoute roles={["ADMIN"]}>
@@ -149,6 +232,13 @@ export default function AdminDashboardPage() {
                   <p className="text-primary font-semibold">Organizer View</p>
                   <p className="text-gray-400 text-xs mt-1">Dashboard tổ chức</p>
                 </Link>
+                <button
+                  onClick={() => document.getElementById("promo-section")?.scrollIntoView({ behavior: "smooth" })}
+                  className="bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-xl p-4 text-center transition"
+                >
+                  <p className="text-primary font-semibold">Mã giảm giá</p>
+                  <p className="text-gray-400 text-xs mt-1">Quản lý promo codes</p>
+                </button>
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -233,10 +323,231 @@ export default function AdminDashboardPage() {
                   )}
                 </div>
               </div>
+
+              {/* Promo Code Management */}
+              <div id="promo-section" className="mt-8 bg-zinc-800 border border-zinc-700 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-semibold text-white">Mã giảm giá</h2>
+                  <button
+                    onClick={openCreatePromo}
+                    className="px-4 py-2 bg-primary text-white rounded-lg text-sm hover:bg-green-600 transition"
+                  >
+                    + Tạo mã mới
+                  </button>
+                </div>
+
+                {promoLoading ? (
+                  <div className="text-center text-gray-400 py-8">Đang tải...</div>
+                ) : promos.length === 0 ? (
+                  <div className="text-center text-gray-400 py-8">Chưa có mã giảm giá nào</div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="text-gray-400 border-b border-zinc-700">
+                          <th className="text-left pb-3 pr-4">Mã</th>
+                          <th className="text-left pb-3 pr-4">Loại</th>
+                          <th className="text-left pb-3 pr-4">Giá trị</th>
+                          <th className="text-left pb-3 pr-4">Đã dùng / Giới hạn</th>
+                          <th className="text-left pb-3 pr-4">Đơn tối thiểu</th>
+                          <th className="text-left pb-3 pr-4">Hiệu lực</th>
+                          <th className="text-left pb-3 pr-4">Trạng thái</th>
+                          <th className="text-left pb-3">Hành động</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {promos.map((promo) => (
+                          <tr key={promo.id} className="border-b border-zinc-700/50 last:border-0">
+                            <td className="py-3 pr-4 font-mono text-white font-medium">{promo.code}</td>
+                            <td className="py-3 pr-4 text-gray-300">
+                              {promo.discountType === "PERCENTAGE" ? "%" : "Cố định"}
+                            </td>
+                            <td className="py-3 pr-4 text-gray-300">
+                              {promo.discountType === "PERCENTAGE"
+                                ? `${promo.discountValue}%`
+                                : formatCurrencyShort(promo.discountValue)}
+                            </td>
+                            <td className="py-3 pr-4 text-gray-300">
+                              {promo.usedCount} / {promo.usageLimit ?? "∞"}
+                            </td>
+                            <td className="py-3 pr-4 text-gray-300">
+                              {formatCurrencyShort(promo.minOrderAmount)}
+                            </td>
+                            <td className="py-3 pr-4 text-gray-400 text-xs">
+                              {promo.startDate
+                                ? new Date(promo.startDate).toLocaleDateString("vi-VN")
+                                : "—"}{" "}
+                              →{" "}
+                              {promo.endDate
+                                ? new Date(promo.endDate).toLocaleDateString("vi-VN")
+                                : "∞"}
+                            </td>
+                            <td className="py-3 pr-4">
+                              <button
+                                onClick={() => handleTogglePromo(promo.id)}
+                                className={`px-2 py-1 rounded text-xs font-medium transition ${
+                                  promo.active
+                                    ? "bg-green-500/20 text-green-400 hover:bg-green-500/30"
+                                    : "bg-zinc-600 text-zinc-300 hover:bg-zinc-500"
+                                }`}
+                              >
+                                {promo.active ? "Hoạt động" : "Tắt"}
+                              </button>
+                            </td>
+                            <td className="py-3">
+                              <button
+                                onClick={() => openEditPromo(promo)}
+                                className="text-primary hover:underline text-xs"
+                              >
+                                Sửa
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
             </>
           )}
         </div>
       </div>
+
+      {/* Promo Code Modal */}
+      {showPromoModal && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 px-4">
+          <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-6 w-full max-w-md">
+            <h3 className="text-white font-semibold text-lg mb-4">
+              {editingPromo ? "Sửa mã giảm giá" : "Tạo mã giảm giá mới"}
+            </h3>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-gray-400 text-sm block mb-1">Mã *</label>
+                <input
+                  type="text"
+                  value={promoForm.code}
+                  onChange={(e) => setPromoForm({ ...promoForm, code: e.target.value.toUpperCase() })}
+                  placeholder="VD: SUMMER20"
+                  className="w-full bg-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary font-mono"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-gray-400 text-sm block mb-1">Loại giảm giá *</label>
+                  <select
+                    value={promoForm.discountType}
+                    onChange={(e) =>
+                      setPromoForm({ ...promoForm, discountType: e.target.value as "PERCENTAGE" | "FLAT" })
+                    }
+                    className="w-full bg-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="PERCENTAGE">Phần trăm (%)</option>
+                    <option value="FLAT">Số tiền cố định</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-gray-400 text-sm block mb-1">
+                    Giá trị * {promoForm.discountType === "PERCENTAGE" ? "(%)" : "(đ)"}
+                  </label>
+                  <input
+                    type="number"
+                    value={promoForm.discountValue || ""}
+                    onChange={(e) => setPromoForm({ ...promoForm, discountValue: Number(e.target.value) })}
+                    min={1}
+                    max={promoForm.discountType === "PERCENTAGE" ? 100 : undefined}
+                    className="w-full bg-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-gray-400 text-sm block mb-1">Đơn tối thiểu (đ)</label>
+                  <input
+                    type="number"
+                    value={promoForm.minOrderAmount || ""}
+                    onChange={(e) =>
+                      setPromoForm({ ...promoForm, minOrderAmount: e.target.value ? Number(e.target.value) : undefined })
+                    }
+                    placeholder="Không giới hạn"
+                    className="w-full bg-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-400 text-sm block mb-1">Giới hạn lượt dùng</label>
+                  <input
+                    type="number"
+                    value={promoForm.usageLimit || ""}
+                    onChange={(e) =>
+                      setPromoForm({ ...promoForm, usageLimit: e.target.value ? Number(e.target.value) : undefined })
+                    }
+                    placeholder="Không giới hạn"
+                    className="w-full bg-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-gray-400 text-sm block mb-1">Ngày bắt đầu</label>
+                  <input
+                    type="datetime-local"
+                    value={promoForm.startDate || ""}
+                    onChange={(e) =>
+                      setPromoForm({ ...promoForm, startDate: e.target.value || undefined })
+                    }
+                    className="w-full bg-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+                <div>
+                  <label className="text-gray-400 text-sm block mb-1">Ngày kết thúc</label>
+                  <input
+                    type="datetime-local"
+                    value={promoForm.endDate || ""}
+                    onChange={(e) =>
+                      setPromoForm({ ...promoForm, endDate: e.target.value || undefined })
+                    }
+                    className="w-full bg-zinc-700 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={promoForm.active}
+                  onChange={(e) => setPromoForm({ ...promoForm, active: e.target.checked })}
+                  className="accent-primary"
+                />
+                <span className="text-gray-300 text-sm">Kích hoạt ngay</span>
+              </label>
+            </div>
+
+            {promoError && (
+              <p className="text-red-400 text-sm mt-3">{promoError}</p>
+            )}
+
+            <div className="flex gap-3 mt-5">
+              <button
+                onClick={() => setShowPromoModal(false)}
+                className="flex-1 py-2 bg-zinc-700 text-gray-300 rounded-lg text-sm hover:bg-zinc-600 transition"
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSavePromo}
+                disabled={promoSaving}
+                className="flex-1 py-2 bg-primary text-white rounded-lg text-sm hover:bg-green-600 transition disabled:opacity-50"
+              >
+                {promoSaving ? "Đang lưu..." : "Lưu"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </ProtectedRoute>
   );
 }

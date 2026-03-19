@@ -9,9 +9,12 @@ import com.example.ticketbox.exception.ResourceNotFoundException;
 import com.example.ticketbox.model.*;
 import com.example.ticketbox.repository.CartItemRepository;
 import com.example.ticketbox.repository.OrderRepository;
+import com.example.ticketbox.repository.PromoCodeRepository;
+import com.example.ticketbox.repository.PromoCodeUsageRepository;
 import com.example.ticketbox.repository.SeatRepository;
 import com.example.ticketbox.repository.TicketTypeRepository;
 import com.example.ticketbox.repository.UserRepository;
+import org.springframework.util.StringUtils;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +44,9 @@ public class OrderService {
     private final VNPayService vnPayService;
     private final TicketService ticketService;
     private final EmailService emailService;
+    private final PromoCodeService promoCodeService;
+    private final PromoCodeRepository promoCodeRepository;
+    private final PromoCodeUsageRepository promoCodeUsageRepository;
 
     @Transactional
     public OrderResponse checkout(Long userId, CheckoutRequest request) {
@@ -88,10 +94,38 @@ public class OrderService {
             orderItems.add(orderItem);
         }
 
+        // Apply promo code if provided
+        BigDecimal subtotal = totalAmount;
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        String appliedCode = null;
+        PromoCode promoCodeEntity = null;
+
+        if (StringUtils.hasText(request.getPromoCode())) {
+            promoCodeEntity = promoCodeService.getValidPromoCode(request.getPromoCode(), userId, subtotal);
+            discountAmount = promoCodeService.calculateDiscount(promoCodeEntity, subtotal);
+            totalAmount = subtotal.subtract(discountAmount).max(BigDecimal.ZERO);
+            appliedCode = promoCodeEntity.getCode().toUpperCase();
+            promoCodeEntity.setUsedCount(promoCodeEntity.getUsedCount() + 1);
+            promoCodeRepository.save(promoCodeEntity);
+        }
+
+        order.setOriginalAmount(subtotal);
+        order.setDiscountAmount(discountAmount);
+        order.setPromoCode(appliedCode);
         order.setTotalAmount(totalAmount);
         order.setOrderItems(orderItems);
 
         Order saved = orderRepository.save(order);
+
+        // Save promo code usage record
+        if (promoCodeEntity != null) {
+            PromoCodeUsage usage = PromoCodeUsage.builder()
+                    .promoCode(promoCodeEntity)
+                    .user(user)
+                    .order(saved)
+                    .build();
+            promoCodeUsageRepository.save(usage);
+        }
 
         // Clear cart
         cartItemRepository.deleteByUserId(userId);
@@ -253,6 +287,9 @@ public class OrderService {
                 .id(order.getId())
                 .status(order.getStatus().name())
                 .totalAmount(order.getTotalAmount())
+                .originalAmount(order.getOriginalAmount())
+                .discountAmount(order.getDiscountAmount())
+                .promoCode(order.getPromoCode())
                 .paymentMethod(order.getPaymentMethod() != null ? order.getPaymentMethod().name() : null)
                 .paymentStatus(order.getPaymentStatus().name())
                 .vnpayTxnRef(order.getVnpayTxnRef())

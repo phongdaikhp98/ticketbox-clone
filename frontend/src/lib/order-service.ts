@@ -1,6 +1,6 @@
 import api from "./api";
 import { ApiResponse } from "@/types/auth";
-import { OrderResponse, CheckoutRequest, PaymentUrlResponse } from "@/types/order";
+import { OrderResponse, CheckoutRequest, PaymentUrlResponse, ValidatePromoCodeResponse } from "@/types/order";
 import { PageResponse } from "@/types/event";
 
 export const orderService = {
@@ -37,6 +37,14 @@ export const orderService = {
 
   async cancelOrder(id: number): Promise<void> {
     await api.delete(`/v1/orders/${id}/cancel`);
+  },
+
+  async validatePromoCode(code: string, subtotal: number): Promise<ValidatePromoCodeResponse> {
+    const res = await api.get<ApiResponse<ValidatePromoCodeResponse>>(
+      "/v1/promo-codes/validate",
+      { params: { code, subtotal } }
+    );
+    return res.data.data;
   },
 
   async verifyVnPayReturn(params: Record<string, string>): Promise<{ RspCode: string; Message: string }> {

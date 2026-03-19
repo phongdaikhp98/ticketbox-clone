@@ -48,6 +48,16 @@ public class Order {
     @Builder.Default
     private List<OrderItem> orderItems = new ArrayList<>();
 
+    @Column(name = "PROMO_CODE", length = 50)
+    private String promoCode;
+
+    @Column(name = "DISCOUNT_AMOUNT", precision = 14, scale = 2)
+    @Builder.Default
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    @Column(name = "ORIGINAL_AMOUNT", precision = 14, scale = 2)
+    private BigDecimal originalAmount;
+
     @Column(name = "VNPAY_TXN_REF", length = 50)
     private String vnpayTxnRef;
 

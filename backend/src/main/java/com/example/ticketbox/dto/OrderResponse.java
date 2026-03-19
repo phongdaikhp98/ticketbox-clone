@@ -18,6 +18,9 @@ public class OrderResponse {
     private Long id;
     private String status;
     private BigDecimal totalAmount;
+    private BigDecimal originalAmount;
+    private BigDecimal discountAmount;
+    private String promoCode;
     private String paymentMethod;
     private String paymentStatus;
     private String vnpayTxnRef;

@@ -9,4 +9,6 @@ public class CheckoutRequest {
 
     @NotNull(message = "Payment method is required")
     private PaymentMethod paymentMethod;
+
+    private String promoCode;
 }
