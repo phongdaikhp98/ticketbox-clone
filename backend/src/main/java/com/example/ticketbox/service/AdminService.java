@@ -31,6 +31,7 @@ public class AdminService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
     private final TicketRepository ticketRepository;
+    private final AuditLogService auditLogService;
 
     // ==================== Dashboard Overview ====================
 
@@ -95,7 +96,7 @@ public class AdminService {
     }
 
     @Transactional
-    public AdminUserResponse changeRole(Long userId, String newRole) {
+    public AdminUserResponse changeRole(Long adminId, Long userId, String newRole) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -114,13 +115,15 @@ public class AdminService {
             throw new BadRequestException("Cannot promote user to admin role");
         }
 
+        String oldRole = user.getRole().name();
         user.setRole(role);
         userRepository.save(user);
+        auditLogService.log(adminId, "CHANGE_ROLE", "USER", userId, user.getEmail(), oldRole, role.name());
         return toAdminUserResponse(user);
     }
 
     @Transactional
-    public AdminUserResponse toggleActive(Long userId) {
+    public AdminUserResponse toggleActive(Long adminId, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
@@ -128,8 +131,11 @@ public class AdminService {
             throw new BadRequestException("Cannot deactivate an admin user");
         }
 
+        String oldVal = user.getIsActive() ? "ACTIVE" : "INACTIVE";
         user.setIsActive(!user.getIsActive());
         userRepository.save(user);
+        String newVal = user.getIsActive() ? "ACTIVE" : "INACTIVE";
+        auditLogService.log(adminId, "TOGGLE_ACTIVE", "USER", userId, user.getEmail(), oldVal, newVal);
         return toAdminUserResponse(user);
     }
 
@@ -169,16 +175,19 @@ public class AdminService {
     }
 
     @Transactional
-    public AdminEventResponse toggleFeatured(Long eventId) {
+    public AdminEventResponse toggleFeatured(Long adminId, Long eventId) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
+        String oldVal = event.getIsFeatured() ? "FEATURED" : "NOT_FEATURED";
         event.setIsFeatured(!event.getIsFeatured());
         eventRepository.save(event);
+        String newVal = event.getIsFeatured() ? "FEATURED" : "NOT_FEATURED";
+        auditLogService.log(adminId, "TOGGLE_FEATURED", "EVENT", eventId, event.getTitle(), oldVal, newVal);
         return toAdminEventResponse(event);
     }
 
     @Transactional
-    public AdminEventResponse changeEventStatus(Long eventId, EventStatus newStatus) {
+    public AdminEventResponse changeEventStatus(Long adminId, Long eventId, EventStatus newStatus) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
 
@@ -190,8 +199,10 @@ public class AdminService {
             throw new BadRequestException("Cannot revert a published event to draft");
         }
 
+        String oldStatus = event.getStatus().name();
         event.setStatus(newStatus);
         eventRepository.save(event);
+        auditLogService.log(adminId, "CHANGE_EVENT_STATUS", "EVENT", eventId, event.getTitle(), oldStatus, newStatus.name());
         return toAdminEventResponse(event);
     }
 

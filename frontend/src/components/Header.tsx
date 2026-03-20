@@ -142,10 +142,17 @@ export default function Header() {
                       </Link>
                       <Link
                         href="/admin/events"
-                        className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-600 text-sm transition last:rounded-b-lg"
+                        className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-600 text-sm transition"
                         onClick={() => setAdminDropdownOpen(false)}
                       >
                         🎭 Quản lý sự kiện
+                      </Link>
+                      <Link
+                        href="/admin/audit-logs"
+                        className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-600 text-sm transition last:rounded-b-lg"
+                        onClick={() => setAdminDropdownOpen(false)}
+                      >
+                        📋 Audit Log
                       </Link>
                     </div>
                   )}

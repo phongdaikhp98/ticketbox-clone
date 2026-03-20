@@ -5,12 +5,15 @@ import com.example.ticketbox.dto.*;
 import com.example.ticketbox.model.EventStatus;
 import com.example.ticketbox.model.OrderStatus;
 import com.example.ticketbox.model.Role;
+import com.example.ticketbox.security.UserDetailsImpl;
 import com.example.ticketbox.service.AdminService;
+import com.example.ticketbox.service.AuditLogService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class AdminController {
 
     private final AdminService adminService;
+    private final AuditLogService auditLogService;
 
     // ==================== Dashboard ====================
 
@@ -44,15 +48,19 @@ public class AdminController {
     @PatchMapping("/users/{id}/role")
     public ResponseEntity<ApiResponse<AdminUserResponse>> changeRole(
             @PathVariable Long id,
-            @Valid @RequestBody ChangeRoleRequest request) {
+            @Valid @RequestBody ChangeRoleRequest request,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long adminId = userDetails.getId();
         return ResponseEntity.ok(ApiResponse.success(
-                adminService.changeRole(id, request.getRole())));
+                adminService.changeRole(adminId, id, request.getRole())));
     }
 
     @PatchMapping("/users/{id}/toggle-active")
     public ResponseEntity<ApiResponse<AdminUserResponse>> toggleActive(
-            @PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(adminService.toggleActive(id)));
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long adminId = userDetails.getId();
+        return ResponseEntity.ok(ApiResponse.success(adminService.toggleActive(adminId, id)));
     }
 
     // ==================== Order Management ====================
@@ -88,15 +96,29 @@ public class AdminController {
 
     @PatchMapping("/events/{id}/toggle-featured")
     public ResponseEntity<ApiResponse<AdminEventResponse>> toggleFeatured(
-            @PathVariable Long id) {
-        return ResponseEntity.ok(ApiResponse.success(adminService.toggleFeatured(id)));
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long adminId = userDetails.getId();
+        return ResponseEntity.ok(ApiResponse.success(adminService.toggleFeatured(adminId, id)));
     }
 
     @PatchMapping("/events/{id}/status")
     public ResponseEntity<ApiResponse<AdminEventResponse>> changeEventStatus(
             @PathVariable Long id,
-            @RequestParam EventStatus status) {
+            @RequestParam EventStatus status,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long adminId = userDetails.getId();
         return ResponseEntity.ok(ApiResponse.success(
-                adminService.changeEventStatus(id, status)));
+                adminService.changeEventStatus(adminId, id, status)));
+    }
+
+    // ==================== Audit Logs ====================
+
+    @GetMapping("/audit-logs")
+    public ResponseEntity<ApiResponse<Page<AuditLogResponse>>> getAuditLogs(
+            @RequestParam(required = false) String entityType,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size) {
+        return ResponseEntity.ok(ApiResponse.success(auditLogService.getLogs(entityType, page, size)));
     }
 }
