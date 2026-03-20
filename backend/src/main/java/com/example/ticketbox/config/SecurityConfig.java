@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/v1/auth/register", "/v1/auth/login", "/v1/auth/refresh-token").permitAll()
                         .requestMatchers("/v1/events/**").permitAll()
                         .requestMatchers("/v1/payment/vnpay-ipn").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(rateLimitFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
