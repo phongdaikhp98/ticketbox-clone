@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Đơn hàng mới</title>
+</head>
+<body style="margin:0;padding:0;background-color:#18181b;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#18181b;padding:32px 0;">
+  <tr>
+    <td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#27272a;border-radius:16px;overflow:hidden;border:1px solid #3f3f46;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#2563eb,#1d4ed8);padding:32px 40px;text-align:center;">
+            <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">Ticketbox Admin</div>
+            <div style="font-size:40px;margin-top:16px;">🛒</div>
+            <div style="font-size:22px;font-weight:600;color:#ffffff;margin-top:8px;">Đơn hàng mới!</div>
+            <div style="font-size:14px;color:#bfdbfe;margin-top:4px;">Có đơn hàng vừa được thanh toán thành công</div>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:32px 40px;">
+
+            <!-- Order Info -->
+            <div style="font-size:14px;font-weight:600;color:#a1a1aa;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">Thông tin đơn hàng</div>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#3f3f46;border-radius:10px;padding:16px;margin-bottom:24px;">
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;">Mã đơn hàng</td>
+                <td style="color:#ffffff;font-size:13px;font-weight:600;text-align:right;padding:6px 8px;" th:text="'#' + ${orderId}">#123</td>
+              </tr>
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;">Ngày đặt</td>
+                <td style="color:#ffffff;font-size:13px;text-align:right;padding:6px 8px;" th:text="${createdDate}">01/01/2025 10:00</td>
+              </tr>
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;">Phương thức</td>
+                <td style="color:#ffffff;font-size:13px;text-align:right;padding:6px 8px;">VNPay</td>
+              </tr>
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;">Mã giảm giá</td>
+                <td style="color:#ffffff;font-size:13px;text-align:right;padding:6px 8px;" th:text="${promoCode != null ? promoCode : '—'}">—</td>
+              </tr>
+            </table>
+
+            <!-- Customer Info -->
+            <div style="font-size:14px;font-weight:600;color:#a1a1aa;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">Thông tin khách hàng</div>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#3f3f46;border-radius:10px;padding:16px;margin-bottom:24px;">
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;">Họ tên</td>
+                <td style="color:#ffffff;font-size:13px;font-weight:600;text-align:right;padding:6px 8px;" th:text="${userName}">Nguyễn Văn A</td>
+              </tr>
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;">Email</td>
+                <td style="text-align:right;padding:6px 8px;">
+                  <a th:href="'mailto:' + ${userEmail}" th:text="${userEmail}"
+                     style="color:#60a5fa;font-size:13px;text-decoration:none;">user@email.com</a>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Order Items Table -->
+            <div style="font-size:14px;font-weight:600;color:#a1a1aa;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">Chi tiết vé</div>
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;">
+              <thead>
+                <tr style="background-color:#3f3f46;">
+                  <th style="text-align:left;color:#a1a1aa;font-size:12px;font-weight:500;padding:10px 12px;border-radius:6px 0 0 0;">Sự kiện</th>
+                  <th style="text-align:left;color:#a1a1aa;font-size:12px;font-weight:500;padding:10px 12px;">Loại vé</th>
+                  <th style="text-align:center;color:#a1a1aa;font-size:12px;font-weight:500;padding:10px 12px;">SL</th>
+                  <th style="text-align:right;color:#a1a1aa;font-size:12px;font-weight:500;padding:10px 12px;border-radius:0 6px 0 0;">Thành tiền</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr th:each="item : ${orderItems}" style="border-bottom:1px solid #3f3f46;">
+                  <td style="color:#e4e4e7;font-size:13px;padding:12px;font-weight:500;" th:text="${item.eventTitle}">Sự kiện</td>
+                  <td style="color:#a1a1aa;font-size:13px;padding:12px;" th:text="${item.ticketTypeName}">VIP</td>
+                  <td style="color:#a1a1aa;font-size:13px;padding:12px;text-align:center;" th:text="${item.quantity}">1</td>
+                  <td style="color:#60a5fa;font-size:13px;padding:12px;text-align:right;font-weight:600;" th:text="${item.lineTotal}">500.000 ₫</td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Total -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:8px;border-top:1px solid #3f3f46;">
+              <tr th:if="${discountAmount != null}">
+                <td style="color:#a1a1aa;font-size:13px;padding:10px 12px;">Giá gốc</td>
+                <td style="text-align:right;padding:10px 12px;">
+                  <span style="color:#a1a1aa;font-size:14px;" th:text="${originalAmount}">500.000 ₫</span>
+                </td>
+              </tr>
+              <tr th:if="${discountAmount != null}">
+                <td style="color:#a1a1aa;font-size:13px;padding:10px 12px;">Giảm giá</td>
+                <td style="text-align:right;padding:10px 12px;">
+                  <span style="color:#f87171;font-size:14px;" th:text="'- ' + ${discountAmount}">- 50.000 ₫</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="color:#a1a1aa;font-size:14px;padding:12px;">Tổng thanh toán</td>
+                <td style="text-align:right;padding:12px;">
+                  <span style="color:#60a5fa;font-size:20px;font-weight:700;" th:text="${totalAmount}">500.000 ₫</span>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CTA Button -->
+            <div style="text-align:center;margin-top:32px;">
+              <a th:href="${orderDetailUrl}" href="#"
+                 style="display:inline-block;background-color:#2563eb;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 36px;border-radius:10px;letter-spacing:0.3px;">
+                📋 Xem chi tiết đơn hàng
+              </a>
+            </div>
+
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background-color:#18181b;padding:24px 40px;text-align:center;border-top:1px solid #3f3f46;">
+            <div style="color:#52525b;font-size:12px;">© 2025 Ticketbox Admin · Email thông báo tự động</div>
+            <div style="color:#52525b;font-size:11px;margin-top:4px;">Email này được gửi tự động, vui lòng không trả lời.</div>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

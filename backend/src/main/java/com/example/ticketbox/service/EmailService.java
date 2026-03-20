@@ -39,6 +39,9 @@ public class EmailService {
     @Value("${app.mail.frontend-url}")
     private String frontendUrl;
 
+    @Value("${app.mail.admin-email:}")
+    private String adminEmail;
+
     @Async("emailExecutor")
     @Transactional(readOnly = true)
     public void sendPaymentSuccessEmail(Long orderId) {
@@ -90,6 +93,45 @@ public class EmailService {
             log.info("Payment failed email sent to {} for order #{}", order.getUser().getEmail(), orderId);
         } catch (Exception e) {
             log.warn("Failed to send payment failed email for order #{}: {}", orderId, e.getMessage());
+        }
+    }
+
+    @Async("emailExecutor")
+    @Transactional(readOnly = true)
+    public void sendAdminOrderNotification(Long orderId) {
+        if (adminEmail == null || adminEmail.isBlank()) {
+            log.debug("ADMIN_EMAIL not configured, skipping admin notification for order #{}", orderId);
+            return;
+        }
+        try {
+            Order order = orderRepository.findById(orderId).orElse(null);
+            if (order == null) {
+                log.warn("sendAdminOrderNotification: Order {} not found", orderId);
+                return;
+            }
+
+            Context ctx = new Context();
+            ctx.setVariable("orderId", order.getId());
+            ctx.setVariable("userName", order.getUser().getFullName());
+            ctx.setVariable("userEmail", order.getUser().getEmail());
+            ctx.setVariable("totalAmount", formatCurrency(order.getTotalAmount().longValue()));
+            ctx.setVariable("orderItems", buildItemList(order.getOrderItems()));
+            ctx.setVariable("orderDetailUrl", frontendUrl + "/admin/orders/" + orderId);
+            ctx.setVariable("createdDate", formatDate(order));
+            ctx.setVariable("promoCode", order.getPromoCode());
+            ctx.setVariable("discountAmount",
+                    order.getDiscountAmount() != null && order.getDiscountAmount().compareTo(java.math.BigDecimal.ZERO) > 0
+                            ? formatCurrency(order.getDiscountAmount().longValue()) : null);
+            ctx.setVariable("originalAmount",
+                    order.getOriginalAmount() != null
+                            ? formatCurrency(order.getOriginalAmount().longValue()) : null);
+
+            String html = templateEngine.process("email/admin-order-notification", ctx);
+            String subject = "🛒 Đơn hàng mới #" + orderId + " — " + order.getUser().getFullName();
+            sendHtmlEmail(adminEmail, subject, html);
+            log.info("Admin order notification sent to {} for order #{}", adminEmail, orderId);
+        } catch (Exception e) {
+            log.warn("Failed to send admin order notification for order #{}: {}", orderId, e.getMessage());
         }
     }
 

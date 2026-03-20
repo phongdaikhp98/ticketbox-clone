@@ -63,6 +63,7 @@ app:
     from: ${MAIL_FROM:onboarding@resend.dev}
     from-name: "Ticketbox"
     frontend-url: ${FRONTEND_URL:http://localhost:3000}
+    admin-email: ${ADMIN_EMAIL:}
 
   cloudinary:
     cloud-name: ${CLOUDINARY_CLOUD_NAME}

@@ -227,6 +227,7 @@ public class OrderService {
         // Generate tickets after successful payment
         ticketService.generateTickets(order);
         emailService.sendPaymentSuccessEmail(order.getId());
+        emailService.sendAdminOrderNotification(order.getId());
 
         return Map.of("RspCode", "00", "Message", "Confirm Success");
     }

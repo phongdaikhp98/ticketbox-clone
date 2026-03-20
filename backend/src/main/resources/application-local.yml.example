@@ -17,3 +17,6 @@ VNPAY_HASH_SECRET: <vnpay_hash_secret>
 # 3. Copy username + password vào đây
 MAIL_USERNAME: <mailtrap_username>
 MAIL_PASSWORD: <mailtrap_password>
+
+# Admin notification email — nhận thông báo khi có đơn hàng mới
+ADMIN_EMAIL: <admin_email_address>
