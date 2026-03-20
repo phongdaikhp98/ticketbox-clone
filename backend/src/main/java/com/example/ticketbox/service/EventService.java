@@ -6,6 +6,7 @@ import com.example.ticketbox.exception.ResourceNotFoundException;
 import com.example.ticketbox.model.*;
 import com.example.ticketbox.repository.CategoryRepository;
 import com.example.ticketbox.repository.EventRepository;
+import com.example.ticketbox.repository.ReviewRepository;
 import com.example.ticketbox.repository.SeatMapRepository;
 import com.example.ticketbox.repository.UserRepository;
 import com.example.ticketbox.specification.EventSpecification;
@@ -32,6 +33,7 @@ public class EventService {
     private final CategoryRepository categoryRepository;
     private final SeatMapRepository seatMapRepository;
     private final TagService tagService;
+    private final ReviewRepository reviewRepository;
 
     // === Public ===
 
@@ -278,6 +280,9 @@ public class EventService {
                 .sorted((a, b) -> a.getName().compareTo(b.getName()))
                 .toList();
 
+        Double avgRating = reviewRepository.findAverageRatingByEventId(event.getId());
+        Long reviewCount = reviewRepository.countByEventId(event.getId());
+
         return EventResponse.builder()
                 .id(event.getId())
                 .title(event.getTitle())
@@ -293,6 +298,8 @@ public class EventService {
                 .hasSeatMap(event.isHasSeatMap())
                 .organizer(orgDto)
                 .ticketTypes(ttResponses)
+                .averageRating(avgRating)
+                .reviewCount(reviewCount)
                 .createdDate(event.getCreatedDate())
                 .updatedDate(event.getUpdatedDate())
                 .build();

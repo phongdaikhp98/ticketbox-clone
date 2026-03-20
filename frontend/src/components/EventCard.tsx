@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Event } from "@/types/event";
+import StarRating from "@/components/StarRating";
 
 interface EventCardProps {
   event: Event;
@@ -120,6 +121,21 @@ export default function EventCard({ event, showStatus, onEdit, onDelete }: Event
             )}
           </div>
         )}
+
+        {event.averageRating !== undefined &&
+          event.averageRating > 0 &&
+          (event.reviewCount ?? 0) > 0 && (
+            <div className="flex items-center gap-1.5">
+              <StarRating
+                rating={event.averageRating}
+                size="sm"
+                showValue={true}
+              />
+              <span className="text-zinc-500 text-xs">
+                ({event.reviewCount} đánh giá)
+              </span>
+            </div>
+          )}
 
         <div className="flex items-center justify-between pt-2 border-t border-zinc-700">
           <span className="text-primary font-medium text-sm">

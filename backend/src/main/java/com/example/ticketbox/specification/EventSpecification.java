@@ -47,19 +47,33 @@ public class EventSpecification {
     }
 
     public static Specification<Event> titleContains(String search) {
-        return (root, query, cb) -> cb.like(cb.lower(root.get("title")), "%" + search.toLowerCase() + "%");
+        return searchKeyword(search);
+    }
+
+    public static Specification<Event> searchKeyword(String search) {
+        return (root, query, cb) -> {
+            String pattern = "%" + search.toLowerCase() + "%";
+            return cb.or(
+                cb.like(cb.lower(root.get("title")), pattern),
+                cb.like(cb.lower(root.get("description")), pattern)
+            );
+        };
     }
 
     public static Specification<Event> hasPriceRange(BigDecimal min, BigDecimal max) {
         return (root, query, cb) -> {
-            Join<Event, TicketType> ticketJoin = root.join("ticketTypes", JoinType.INNER);
+            Subquery<Integer> sq = query.subquery(Integer.class);
+            Root<Event> sqEvent = sq.correlate(root);
+            Join<Event, TicketType> ticketJoin = sqEvent.join("ticketTypes", JoinType.INNER);
+            sq.select(cb.literal(1));
             if (min != null && max != null) {
-                return cb.between(ticketJoin.get("price"), min, max);
+                sq.where(cb.between(ticketJoin.get("price"), min, max));
             } else if (min != null) {
-                return cb.greaterThanOrEqualTo(ticketJoin.get("price"), min);
+                sq.where(cb.greaterThanOrEqualTo(ticketJoin.get("price"), min));
             } else {
-                return cb.lessThanOrEqualTo(ticketJoin.get("price"), max);
+                sq.where(cb.lessThanOrEqualTo(ticketJoin.get("price"), max));
             }
+            return cb.exists(sq);
         };
     }
 }

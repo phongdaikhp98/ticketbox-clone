@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import Header from "@/components/Header";
 import SeatMapViewer from "@/components/SeatMapViewer";
+import ReviewSection from "@/components/ReviewSection";
 import { eventService } from "@/lib/event-service";
 import { cartService } from "@/lib/cart-service";
 import { wishlistService } from "@/lib/wishlist-service";
@@ -331,6 +332,12 @@ export default function EventDetailPage() {
               </div>
             </div>
             )}
+
+            <ReviewSection
+              eventId={event.id}
+              currentUserId={user?.id}
+              isAuthenticated={!!user}
+            />
           </div>
         ) : null}
       </main>

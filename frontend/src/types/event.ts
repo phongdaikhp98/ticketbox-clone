@@ -30,6 +30,8 @@ export interface Event {
   ticketTypes: TicketTypeInfo[];
   createdDate: string;
   updatedDate: string;
+  averageRating?: number;
+  reviewCount?: number;
 }
 
 export interface OrganizerInfo {

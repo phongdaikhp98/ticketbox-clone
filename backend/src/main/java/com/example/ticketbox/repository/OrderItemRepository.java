@@ -33,4 +33,9 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
            "GROUP BY oi.event.id, oi.event.title " +
            "ORDER BY COALESCE(SUM(oi.unitPrice * oi.quantity), 0) DESC")
     List<Object[]> findTopEventsByRevenue(Pageable pageable);
+
+    @Query("SELECT CASE WHEN COUNT(oi) > 0 THEN true ELSE false END FROM OrderItem oi " +
+           "WHERE oi.event.id = :eventId AND oi.order.user.id = :userId " +
+           "AND oi.order.status = com.example.ticketbox.model.OrderStatus.COMPLETED")
+    boolean existsByEventIdAndAttendee(@Param("eventId") Long eventId, @Param("userId") Long userId);
 }

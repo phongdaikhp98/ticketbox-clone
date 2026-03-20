@@ -29,6 +29,8 @@ public class EventResponse {
     private boolean hasSeatMap;
     private OrganizerDto organizer;
     private List<TicketTypeResponse> ticketTypes;
+    private Double averageRating;
+    private Long reviewCount;
     private LocalDateTime createdDate;
     private LocalDateTime updatedDate;
 
