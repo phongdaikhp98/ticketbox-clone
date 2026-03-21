@@ -1,10 +1,7 @@
 package com.example.ticketbox.controller;
 
 import com.example.ticketbox.common.ApiResponse;
-import com.example.ticketbox.dto.AuthResponse;
-import com.example.ticketbox.dto.LoginRequest;
-import com.example.ticketbox.dto.RefreshTokenRequest;
-import com.example.ticketbox.dto.RegisterRequest;
+import com.example.ticketbox.dto.*;
 import com.example.ticketbox.security.UserDetailsImpl;
 import com.example.ticketbox.service.AuthService;
 import jakarta.validation.Valid;
@@ -43,5 +40,23 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse.UserDto>> getCurrentUser(@AuthenticationPrincipal UserDetailsImpl userDetails) {
         AuthResponse.UserDto user = authService.getCurrentUser(userDetails.getEmail());
         return ResponseEntity.ok(ApiResponse.success(user));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        authService.forgotPassword(request.getEmail());
+        return ResponseEntity.ok(ApiResponse.success("Nếu email tồn tại, link đặt lại mật khẩu đã được gửi.", null));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok(ApiResponse.success("Mật khẩu đã được đặt lại thành công.", null));
+    }
+
+    @PostMapping("/oauth2/google")
+    public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        AuthResponse response = authService.loginWithGoogle(request.getIdToken());
+        return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

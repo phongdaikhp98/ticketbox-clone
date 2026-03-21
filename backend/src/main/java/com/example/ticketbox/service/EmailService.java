@@ -135,6 +135,23 @@ public class EmailService {
         }
     }
 
+    @Async("emailExecutor")
+    public void sendPasswordResetEmail(String email, String name, String resetUrl) {
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("userName", name);
+            ctx.setVariable("resetUrl", resetUrl);
+            ctx.setVariable("expireMinutes", 15);
+
+            String html = templateEngine.process("email/reset-password", ctx);
+            String subject = "🔑 Đặt lại mật khẩu Ticketbox";
+            sendHtmlEmail(email, subject, html);
+            log.info("Password reset email sent to {}", email);
+        } catch (Exception e) {
+            log.warn("Failed to send password reset email to {}: {}", email, e.getMessage());
+        }
+    }
+
     private void sendHtmlEmail(String to, String subject, String html) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

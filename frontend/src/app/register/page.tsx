@@ -3,6 +3,7 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/lib/auth-service";
 
@@ -29,7 +30,7 @@ export default function RegisterPage() {
     setError("");
 
     if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match");
+      setError("Mật khẩu xác nhận không khớp");
       return;
     }
 
@@ -45,10 +46,23 @@ export default function RegisterPage() {
         const messages = Object.values(errData.data).join(". ");
         setError(messages);
       } else {
-        setError(errData?.message || "Registration failed");
+        setError(errData?.message || "Đăng ký thất bại");
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) return;
+    setError("");
+    try {
+      const data = await authService.loginWithGoogle(credentialResponse.credential);
+      login(data.accessToken, data.refreshToken, data.user);
+      router.push("/");
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Đăng ký Google thất bại";
+      setError(msg);
     }
   };
 
@@ -59,7 +73,7 @@ export default function RegisterPage() {
           <Link href="/">
             <h1 className="text-4xl font-bold text-primary">Ticketbox</h1>
           </Link>
-          <p className="text-gray-400 mt-2">Create your account</p>
+          <p className="text-gray-400 mt-2">Tạo tài khoản mới</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-zinc-800 rounded-lg p-8 space-y-4">
@@ -70,7 +84,7 @@ export default function RegisterPage() {
           )}
 
           <div>
-            <label className="block text-gray-300 text-sm mb-2">Full Name *</label>
+            <label className="block text-gray-300 text-sm mb-2">Họ và tên *</label>
             <input
               type="text"
               name="fullName"
@@ -78,7 +92,7 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               className="w-full px-4 py-3 bg-zinc-700 border border-zinc-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary"
-              placeholder="Your full name"
+              placeholder="Nguyễn Văn A"
             />
           </div>
 
@@ -96,7 +110,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-gray-300 text-sm mb-2">Password *</label>
+            <label className="block text-gray-300 text-sm mb-2">Mật khẩu *</label>
             <input
               type="password"
               name="password"
@@ -105,12 +119,12 @@ export default function RegisterPage() {
               required
               minLength={6}
               className="w-full px-4 py-3 bg-zinc-700 border border-zinc-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary"
-              placeholder="At least 6 characters"
+              placeholder="Ít nhất 6 ký tự"
             />
           </div>
 
           <div>
-            <label className="block text-gray-300 text-sm mb-2">Confirm Password *</label>
+            <label className="block text-gray-300 text-sm mb-2">Xác nhận mật khẩu *</label>
             <input
               type="password"
               name="confirmPassword"
@@ -118,12 +132,12 @@ export default function RegisterPage() {
               onChange={handleChange}
               required
               className="w-full px-4 py-3 bg-zinc-700 border border-zinc-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary"
-              placeholder="Confirm your password"
+              placeholder="Nhập lại mật khẩu"
             />
           </div>
 
           <div>
-            <label className="block text-gray-300 text-sm mb-2">Phone</label>
+            <label className="block text-gray-300 text-sm mb-2">Số điện thoại</label>
             <input
               type="tel"
               name="phone"
@@ -135,14 +149,14 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="block text-gray-300 text-sm mb-2">Address</label>
+            <label className="block text-gray-300 text-sm mb-2">Địa chỉ</label>
             <input
               type="text"
               name="address"
               value={form.address}
               onChange={handleChange}
               className="w-full px-4 py-3 bg-zinc-700 border border-zinc-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary"
-              placeholder="Your address"
+              placeholder="Địa chỉ của bạn"
             />
           </div>
 
@@ -151,13 +165,30 @@ export default function RegisterPage() {
             disabled={loading}
             className="w-full py-3 bg-primary text-white font-semibold rounded-lg hover:bg-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Creating account..." : "Sign Up"}
+            {loading ? "Đang tạo tài khoản..." : "Đăng ký"}
           </button>
 
+          <div className="relative flex items-center gap-3">
+            <div className="flex-1 h-px bg-zinc-600" />
+            <span className="text-xs text-gray-500">hoặc</span>
+            <div className="flex-1 h-px bg-zinc-600" />
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError("Đăng ký Google thất bại")}
+              text="signup_with"
+              shape="rectangular"
+              theme="filled_black"
+              width="368"
+            />
+          </div>
+
           <p className="text-center text-gray-400 text-sm">
-            Already have an account?{" "}
+            Đã có tài khoản?{" "}
             <Link href="/login" className="text-primary hover:underline">
-              Sign In
+              Đăng nhập
             </Link>
           </p>
         </form>

@@ -23,7 +23,7 @@ public class User {
     @Column(name = "EMAIL", nullable = false, unique = true, length = 255)
     private String email;
 
-    @Column(name = "PASSWORD", nullable = false, length = 255)
+    @Column(name = "PASSWORD", nullable = true, length = 255)
     private String password;
 
     @Column(name = "FULL_NAME", nullable = false, length = 255)
@@ -50,6 +50,11 @@ public class User {
     @Column(name = "EMAIL_VERIFIED", nullable = false)
     @Builder.Default
     private Boolean emailVerified = false;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "PROVIDER", length = 20, nullable = false, columnDefinition = "VARCHAR2(20) DEFAULT 'LOCAL' NOT NULL")
+    @Builder.Default
+    private AuthProvider provider = AuthProvider.LOCAL;
 
     @Column(name = "CREATED_DATE", nullable = false, updatable = false)
     private LocalDateTime createdDate;

@@ -3,6 +3,7 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "@/contexts/AuthContext";
 import { authService } from "@/lib/auth-service";
 
@@ -24,10 +25,23 @@ export default function LoginPage() {
       login(data.accessToken, data.refreshToken, data.user);
       router.push("/");
     } catch (err: any) {
-      const msg = err.response?.data?.message || "Login failed";
+      const msg = err.response?.data?.message || "Đăng nhập thất bại";
       setError(msg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) return;
+    setError("");
+    try {
+      const data = await authService.loginWithGoogle(credentialResponse.credential);
+      login(data.accessToken, data.refreshToken, data.user);
+      router.push("/");
+    } catch (err: any) {
+      const msg = err.response?.data?.message || "Đăng nhập Google thất bại";
+      setError(msg);
     }
   };
 
@@ -38,7 +52,7 @@ export default function LoginPage() {
           <Link href="/">
             <h1 className="text-4xl font-bold text-primary">Ticketbox</h1>
           </Link>
-          <p className="text-gray-400 mt-2">Sign in to your account</p>
+          <p className="text-gray-400 mt-2">Đăng nhập vào tài khoản của bạn</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-zinc-800 rounded-lg p-8 space-y-5">
@@ -61,14 +75,19 @@ export default function LoginPage() {
           </div>
 
           <div>
-            <label className="block text-gray-300 text-sm mb-2">Password</label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="text-gray-300 text-sm">Mật khẩu</label>
+              <Link href="/forgot-password" className="text-xs text-primary hover:underline">
+                Quên mật khẩu?
+              </Link>
+            </div>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               className="w-full px-4 py-3 bg-zinc-700 border border-zinc-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-primary"
-              placeholder="Enter your password"
+              placeholder="Nhập mật khẩu"
             />
           </div>
 
@@ -77,13 +96,30 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-3 bg-primary text-white font-semibold rounded-lg hover:bg-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {loading ? "Đang đăng nhập..." : "Đăng nhập"}
           </button>
 
+          <div className="relative flex items-center gap-3">
+            <div className="flex-1 h-px bg-zinc-600" />
+            <span className="text-xs text-gray-500">hoặc</span>
+            <div className="flex-1 h-px bg-zinc-600" />
+          </div>
+
+          <div className="flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => setError("Đăng nhập Google thất bại")}
+              text="signin_with"
+              shape="rectangular"
+              theme="filled_black"
+              width="368"
+            />
+          </div>
+
           <p className="text-center text-gray-400 text-sm">
-            Don&apos;t have an account?{" "}
+            Chưa có tài khoản?{" "}
             <Link href="/register" className="text-primary hover:underline">
-              Sign Up
+              Đăng ký
             </Link>
           </p>
         </form>

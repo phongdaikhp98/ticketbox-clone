@@ -21,4 +21,17 @@ export const authService = {
     const res = await api.get<ApiResponse<User>>("/v1/auth/me");
     return res.data.data;
   },
+
+  async forgotPassword(email: string): Promise<void> {
+    await api.post("/v1/auth/forgot-password", { email });
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    await api.post("/v1/auth/reset-password", { token, newPassword });
+  },
+
+  async loginWithGoogle(idToken: string): Promise<AuthResponse> {
+    const res = await api.post<ApiResponse<AuthResponse>>("/v1/auth/oauth2/google", { idToken });
+    return res.data.data;
+  },
 };
