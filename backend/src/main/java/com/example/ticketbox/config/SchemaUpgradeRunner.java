@@ -44,6 +44,26 @@ public class SchemaUpgradeRunner implements ApplicationRunner {
                    "ORGANIZER_APP_SEQ sequence");
         executeDDL("CREATE INDEX IDX_ORG_APP_USER_STATUS ON ORGANIZER_APPLICATIONS(USER_ID, STATUS)",
                    "IDX_ORG_APP_USER_STATUS index");
+
+        // Feature: Refund Flow
+        executeDDL("ALTER TABLE ORDERS ADD VNPAY_TRANSACTION_DATE VARCHAR2(14)",
+                   "ORDERS.VNPAY_TRANSACTION_DATE column added");
+        executeDDL("CREATE TABLE REFUND_REQUESTS (" +
+                   "ID NUMBER NOT NULL, " +
+                   "ORDER_ID NUMBER NOT NULL, " +
+                   "AMOUNT NUMBER(14,2) NOT NULL, " +
+                   "STATUS VARCHAR2(20) DEFAULT 'PENDING' NOT NULL, " +
+                   "VNPAY_REQUEST_ID VARCHAR2(100), " +
+                   "VNPAY_RESPONSE_CODE VARCHAR2(10), " +
+                   "VNPAY_RESPONSE_MESSAGE VARCHAR2(500), " +
+                   "CREATED_DATE TIMESTAMP NOT NULL, " +
+                   "UPDATED_DATE TIMESTAMP, " +
+                   "CONSTRAINT PK_REFUND_REQUESTS PRIMARY KEY (ID), " +
+                   "CONSTRAINT FK_RR_ORDER FOREIGN KEY (ORDER_ID) REFERENCES ORDERS(ID), " +
+                   "CONSTRAINT UQ_RR_ORDER UNIQUE (ORDER_ID))",
+                   "REFUND_REQUESTS table");
+        executeDDL("CREATE SEQUENCE REFUND_SEQ START WITH 1 INCREMENT BY 1 NOCACHE",
+                   "REFUND_SEQ sequence");
     }
 
     private void executeDDL(String sql, String description) {

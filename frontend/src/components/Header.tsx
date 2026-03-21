@@ -160,6 +160,13 @@ export default function Header() {
                         📝 Đơn Organizer
                       </Link>
                       <Link
+                        href="/admin/refunds"
+                        className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-600 text-sm transition"
+                        onClick={() => setAdminDropdownOpen(false)}
+                      >
+                        💸 Hoàn tiền
+                      </Link>
+                      <Link
                         href="/admin/audit-logs"
                         className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-600 text-sm transition last:rounded-b-lg"
                         onClick={() => setAdminDropdownOpen(false)}

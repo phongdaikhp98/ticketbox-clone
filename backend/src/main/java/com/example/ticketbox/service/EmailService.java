@@ -214,6 +214,58 @@ public class EmailService {
         }
     }
 
+    @Async("emailExecutor")
+    @Transactional(readOnly = true)
+    public void sendRefundSuccessEmail(Long orderId) {
+        try {
+            Order order = orderRepository.findById(orderId).orElse(null);
+            if (order == null) {
+                log.warn("sendRefundSuccessEmail: Order {} not found", orderId);
+                return;
+            }
+
+            Context ctx = new Context();
+            ctx.setVariable("orderId", order.getId());
+            ctx.setVariable("userName", order.getUser().getFullName());
+            ctx.setVariable("totalAmount", formatCurrency(order.getTotalAmount().longValue()));
+            ctx.setVariable("orderItems", buildItemList(order.getOrderItems()));
+            ctx.setVariable("ordersUrl", frontendUrl + "/orders");
+
+            String html = templateEngine.process("email/refund-success", ctx);
+            String subject = "💸 Hoàn tiền thành công - Đơn hàng #" + orderId;
+            sendHtmlEmail(order.getUser().getEmail(), subject, html);
+            log.info("Refund success email sent to {} for order #{}", order.getUser().getEmail(), orderId);
+        } catch (Exception e) {
+            log.warn("Failed to send refund success email for order #{}: {}", orderId, e.getMessage());
+        }
+    }
+
+    @Async("emailExecutor")
+    @Transactional(readOnly = true)
+    public void sendRefundFailedEmail(Long orderId, String reason) {
+        try {
+            Order order = orderRepository.findById(orderId).orElse(null);
+            if (order == null) {
+                log.warn("sendRefundFailedEmail: Order {} not found", orderId);
+                return;
+            }
+
+            Context ctx = new Context();
+            ctx.setVariable("orderId", order.getId());
+            ctx.setVariable("userName", order.getUser().getFullName());
+            ctx.setVariable("totalAmount", formatCurrency(order.getTotalAmount().longValue()));
+            ctx.setVariable("reason", reason);
+            ctx.setVariable("orderDetailUrl", frontendUrl + "/orders/" + orderId);
+
+            String html = templateEngine.process("email/refund-failed", ctx);
+            String subject = "❌ Hoàn tiền thất bại - Đơn hàng #" + orderId;
+            sendHtmlEmail(order.getUser().getEmail(), subject, html);
+            log.info("Refund failed email sent to {} for order #{}", order.getUser().getEmail(), orderId);
+        } catch (Exception e) {
+            log.warn("Failed to send refund failed email for order #{}: {}", orderId, e.getMessage());
+        }
+    }
+
     private void sendHtmlEmail(String to, String subject, String html) {
         try {
             MimeMessage message = mailSender.createMimeMessage();

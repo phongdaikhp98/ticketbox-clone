@@ -47,6 +47,25 @@ export interface CheckoutRequest {
   promoCode?: string;
 }
 
+export interface RefundResponse {
+  id: number;
+  orderId: number;
+  amount: number;
+  status: string;
+  vnpayRequestId?: string;
+  vnpayResponseCode?: string;
+  vnpayResponseMessage?: string;
+  createdDate: string;
+  updatedDate: string;
+}
+
+export const REFUND_STATUSES: Record<string, { label: string; color: string }> = {
+  PENDING: { label: "Đang chờ", color: "bg-yellow-500/20 text-yellow-400" },
+  PROCESSING: { label: "Đang xử lý", color: "bg-blue-500/20 text-blue-400" },
+  COMPLETED: { label: "Hoàn tiền thành công", color: "bg-green-500/20 text-green-400" },
+  FAILED: { label: "Hoàn tiền thất bại", color: "bg-red-500/20 text-red-400" },
+};
+
 export const ORDER_STATUSES: Record<string, { label: string; color: string }> = {
   PENDING: { label: "Chờ thanh toán", color: "bg-yellow-500/20 text-yellow-400" },
   COMPLETED: { label: "Hoàn thành", color: "bg-green-500/20 text-green-400" },

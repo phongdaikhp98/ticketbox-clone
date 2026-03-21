@@ -222,6 +222,7 @@ public class OrderService {
         order.setStatus(OrderStatus.COMPLETED);
         order.setPaymentStatus(PaymentStatus.SUCCESS);
         order.setVnpayTransactionNo(transactionNo);
+        order.setVnpayTransactionDate(params.get("vnp_PayDate"));
         orderRepository.save(order);
 
         // Generate tickets after successful payment

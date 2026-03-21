@@ -64,6 +64,10 @@ public class Order {
     @Column(name = "VNPAY_TRANSACTION_NO", length = 50)
     private String vnpayTransactionNo;
 
+    // Payment date from VNPay IPN (yyyyMMddHHmmss) — required for refund API
+    @Column(name = "VNPAY_TRANSACTION_DATE", length = 14)
+    private String vnpayTransactionDate;
+
     @Column(name = "CREATED_DATE", nullable = false, updatable = false)
     private LocalDateTime createdDate;
 

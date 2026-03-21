@@ -22,7 +22,7 @@ public class EventReminderService {
     private final ReminderLogRepository reminderLogRepository;
     private final EmailService emailService;
 
-    @Scheduled(cron = "0/30 * * * * *")
+    @Scheduled(cron = "0 0 */23 * * *")
     @Transactional
     public void sendEventReminders() {
         LocalDateTime now = LocalDateTime.now();

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hoàn tiền thành công</title>
+</head>
+<body style="margin:0;padding:0;background-color:#18181b;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#18181b;padding:32px 0;">
+  <tr>
+    <td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#27272a;border-radius:16px;overflow:hidden;border:1px solid #3f3f46;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#2563eb,#1d4ed8);padding:32px 40px;text-align:center;">
+            <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">Ticketbox</div>
+            <div style="font-size:40px;margin-top:16px;">💸</div>
+            <div style="font-size:22px;font-weight:600;color:#ffffff;margin-top:8px;">Hoàn tiền thành công!</div>
+            <div style="font-size:14px;color:#bfdbfe;margin-top:4px;">Yêu cầu hoàn tiền của bạn đã được xử lý</div>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:32px 40px;">
+            <p style="color:#e4e4e7;font-size:16px;margin:0 0 16px;">Xin chào <strong th:text="${userName}">User</strong>,</p>
+            <p style="color:#a1a1aa;font-size:14px;margin:0 0 24px;line-height:1.6;">
+              Chúng tôi xác nhận đã hoàn tiền thành công cho đơn hàng <strong style="color:#e4e4e7;" th:text="'#' + ${orderId}">#000</strong>.
+              Số tiền sẽ được hoàn lại vào tài khoản ngân hàng của bạn trong vòng <strong style="color:#e4e4e7;">3–5 ngày làm việc</strong>.
+            </p>
+
+            <!-- Amount box -->
+            <div style="background-color:#1e3a5f;border:1px solid #2563eb;border-radius:12px;padding:20px;text-align:center;margin-bottom:24px;">
+              <div style="color:#93c5fd;font-size:13px;margin-bottom:6px;">Số tiền hoàn</div>
+              <div style="color:#60a5fa;font-size:28px;font-weight:700;" th:text="${totalAmount}">0 ₫</div>
+            </div>
+
+            <!-- Items -->
+            <div style="background-color:#3f3f46;border-radius:10px;padding:16px;margin-bottom:24px;">
+              <div style="color:#a1a1aa;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px;">Vé đã hủy</div>
+              <div th:each="item : ${orderItems}" style="border-bottom:1px solid #52525b;padding:10px 0;last-child:no-border;">
+                <div style="color:#e4e4e7;font-size:14px;font-weight:500;" th:text="${item.eventTitle}">Event</div>
+                <div style="color:#a1a1aa;font-size:13px;margin-top:2px;">
+                  <span th:text="${item.ticketTypeName}">Type</span> x<span th:text="${item.quantity}">1</span>
+                  <span style="float:right;color:#d4d4d8;" th:text="${item.lineTotal}">0 ₫</span>
+                </div>
+              </div>
+            </div>
+
+            <div style="background-color:#14532d;border:1px solid #15803d;border-radius:8px;padding:14px 16px;margin-bottom:24px;">
+              <p style="color:#86efac;font-size:13px;margin:0;line-height:1.6;">
+                ✅ Tất cả vé của đơn hàng này đã được <strong>hủy</strong>. Nếu có thắc mắc, vui lòng liên hệ hỗ trợ.
+              </p>
+            </div>
+
+            <!-- CTA -->
+            <div style="text-align:center;margin-top:24px;">
+              <a th:href="${ordersUrl}" style="display:inline-block;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#ffffff;font-size:15px;font-weight:600;padding:14px 32px;border-radius:8px;text-decoration:none;">
+                Xem đơn hàng của tôi
+              </a>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background-color:#18181b;padding:20px 40px;text-align:center;border-top:1px solid #3f3f46;">
+            <p style="color:#71717a;font-size:12px;margin:0;">© 2026 Ticketbox by PhongNH. Mọi quyền được bảo lưu.</p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

@@ -52,6 +52,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     List<Ticket> findIssuedTicketsForReminderWindow(@Param("windowStart") LocalDateTime windowStart,
                                                     @Param("windowEnd") LocalDateTime windowEnd);
 
+    List<Ticket> findByOrderItemOrderId(Long orderId);
+
     @Query("SELECT t FROM Ticket t JOIN FETCH t.user JOIN FETCH t.ticketType " +
            "WHERE t.event.id = :eventId " +
            "AND (:status IS NULL OR t.status = :status) " +

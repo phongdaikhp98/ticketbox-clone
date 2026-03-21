@@ -6,7 +6,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { orderService } from "@/lib/order-service";
-import { OrderResponse, ORDER_STATUSES, PAYMENT_METHODS } from "@/types/order";
+import { OrderResponse, RefundResponse, ORDER_STATUSES, REFUND_STATUSES, PAYMENT_METHODS } from "@/types/order";
 
 export default function OrderDetailPage() {
   const params = useParams();
@@ -18,11 +18,23 @@ export default function OrderDetailPage() {
   const [payError, setPayError] = useState("");
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState("");
+  const [refund, setRefund] = useState<RefundResponse | null>(null);
+  const [refunding, setRefunding] = useState(false);
+  const [refundError, setRefundError] = useState("");
 
   const fetchOrder = async () => {
     try {
       const data = await orderService.getOrderDetail(id);
       setOrder(data);
+      // Fetch refund status for COMPLETED or CANCELLED orders
+      if (data.status === "COMPLETED" || data.status === "CANCELLED") {
+        try {
+          const refundData = await orderService.getRefundStatus(id);
+          setRefund(refundData);
+        } catch {
+          // no refund exists — fine
+        }
+      }
     } catch {
       setError("Order not found");
     } finally {
@@ -68,6 +80,35 @@ export default function OrderDetailPage() {
     } finally {
       setCancelling(false);
     }
+  };
+
+  const handleRefund = async () => {
+    if (!confirm("Bạn có chắc muốn yêu cầu hoàn tiền cho đơn hàng này không?\nVé sẽ bị hủy và tiền sẽ được hoàn lại trong 3-5 ngày làm việc.")) return;
+    setRefunding(true);
+    setRefundError("");
+    try {
+      const result = await orderService.requestRefund(id);
+      setRefund(result);
+      await fetchOrder();
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message || "Yêu cầu hoàn tiền thất bại"
+          : "Yêu cầu hoàn tiền thất bại";
+      setRefundError(msg);
+    } finally {
+      setRefunding(false);
+    }
+  };
+
+  const canRefund = (order: OrderResponse): boolean => {
+    if (order.status !== "COMPLETED") return false;
+    if (refund && refund.status !== "FAILED") return false; // has active/completed refund
+    const cutoff = new Date();
+    cutoff.setHours(cutoff.getHours() + 24);
+    return order.orderItems.every(
+      (item) => !item.event.eventDate || new Date(item.event.eventDate) > cutoff
+    );
   };
 
   const canCancel = (order: OrderResponse): boolean => {
@@ -261,7 +302,88 @@ export default function OrderDetailPage() {
                 </div>
               )}
 
-              {order.status === "COMPLETED" && (
+              {order.status === "COMPLETED" && !refund && (
+                <div className="space-y-3">
+                  <div className="bg-green-500/10 border border-green-500 rounded-lg p-4 text-center">
+                    <p className="text-green-400 font-medium">
+                      Thanh toán thành công! Chúc bạn có một trải nghiệm tuyệt vời.
+                    </p>
+                  </div>
+                  {canRefund(order) && (
+                    <>
+                      {refundError && (
+                        <div className="bg-red-500/10 border border-red-500 rounded-lg p-3 text-red-400 text-sm">
+                          {refundError}
+                        </div>
+                      )}
+                      <button
+                        onClick={handleRefund}
+                        disabled={refunding}
+                        className="w-full py-3 bg-zinc-700 text-orange-400 border border-orange-500/30 rounded-lg hover:bg-orange-500/10 transition font-medium disabled:opacity-50"
+                      >
+                        {refunding ? "Đang xử lý..." : "💸 Yêu cầu hoàn tiền"}
+                      </button>
+                      <p className="text-xs text-gray-500 text-center">
+                        Chỉ áp dụng khi sự kiện còn hơn 24 giờ nữa mới bắt đầu
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Refund status display */}
+              {refund && (
+                <div className={`rounded-lg p-4 border ${
+                  refund.status === "COMPLETED"
+                    ? "bg-blue-500/10 border-blue-500"
+                    : refund.status === "FAILED"
+                    ? "bg-red-500/10 border-red-500"
+                    : "bg-yellow-500/10 border-yellow-500"
+                }`}>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className={`font-medium ${
+                      refund.status === "COMPLETED" ? "text-blue-400"
+                      : refund.status === "FAILED" ? "text-red-400"
+                      : "text-yellow-400"
+                    }`}>
+                      {(REFUND_STATUSES[refund.status] || { label: refund.status }).label}
+                    </p>
+                    <span className="text-gray-400 text-sm">
+                      {formatPrice(refund.amount)}
+                    </span>
+                  </div>
+                  {refund.status === "COMPLETED" && (
+                    <p className="text-gray-400 text-sm">
+                      Tiền sẽ được hoàn vào tài khoản trong 3–5 ngày làm việc.
+                    </p>
+                  )}
+                  {refund.status === "FAILED" && (
+                    <div className="space-y-2">
+                      {refund.vnpayResponseMessage && (
+                        <p className="text-gray-400 text-sm">Lý do: {refund.vnpayResponseMessage}</p>
+                      )}
+                      {canRefund(order) && (
+                        <>
+                          {refundError && (
+                            <div className="bg-red-500/10 border border-red-500 rounded p-2 text-red-400 text-xs">
+                              {refundError}
+                            </div>
+                          )}
+                          <button
+                            onClick={handleRefund}
+                            disabled={refunding}
+                            className="w-full py-2 bg-zinc-700 text-orange-400 border border-orange-500/30 rounded-lg hover:bg-orange-500/10 transition text-sm disabled:opacity-50"
+                          >
+                            {refunding ? "Đang xử lý..." : "Thử lại hoàn tiền"}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {order.status === "COMPLETED" && refund?.status === "COMPLETED" && (
                 <div className="bg-green-500/10 border border-green-500 rounded-lg p-4 text-center">
                   <p className="text-green-400 font-medium">
                     Thanh toán thành công! Chúc bạn có một trải nghiệm tuyệt vời.

@@ -5,10 +5,12 @@ import com.example.ticketbox.dto.*;
 import com.example.ticketbox.model.ApplicationStatus;
 import com.example.ticketbox.model.EventStatus;
 import com.example.ticketbox.model.OrderStatus;
+import com.example.ticketbox.model.RefundStatus;
 import com.example.ticketbox.model.Role;
 import com.example.ticketbox.security.UserDetailsImpl;
 import com.example.ticketbox.service.AdminService;
 import com.example.ticketbox.service.AuditLogService;
+import com.example.ticketbox.service.RefundService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -27,6 +29,7 @@ public class AdminController {
 
     private final AdminService adminService;
     private final AuditLogService auditLogService;
+    private final RefundService refundService;
 
     // ==================== Dashboard ====================
 
@@ -135,6 +138,17 @@ public class AdminController {
         Long adminId = userDetails.getId();
         return ResponseEntity.ok(ApiResponse.success(
                 adminService.reviewOrganizerApplication(adminId, id, request)));
+    }
+
+    // ==================== Refund Management ====================
+
+    @GetMapping("/refunds")
+    public ResponseEntity<ApiResponse<Page<RefundResponse>>> getRefunds(
+            @RequestParam(required = false) RefundStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"));
+        return ResponseEntity.ok(ApiResponse.success(refundService.getAllRefunds(status, pageable)));
     }
 
     // ==================== Audit Logs ====================

@@ -140,6 +140,17 @@ public class TicketService {
                 .build();
     }
 
+    @Transactional
+    public void cancelTicketsByOrderId(Long orderId) {
+        List<Ticket> tickets = ticketRepository.findByOrderItemOrderId(orderId);
+        for (Ticket ticket : tickets) {
+            if (ticket.getStatus() != TicketStatus.CANCELLED) {
+                ticket.setStatus(TicketStatus.CANCELLED);
+                ticketRepository.save(ticket);
+            }
+        }
+    }
+
     // Allow ADMIN to check-in without organizer validation
     @Transactional
     public CheckInResponse checkInAsAdmin(String ticketCode) {

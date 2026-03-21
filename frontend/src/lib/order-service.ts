@@ -1,6 +1,6 @@
 import api from "./api";
 import { ApiResponse } from "@/types/auth";
-import { OrderResponse, CheckoutRequest, PaymentUrlResponse, ValidatePromoCodeResponse } from "@/types/order";
+import { OrderResponse, CheckoutRequest, PaymentUrlResponse, ValidatePromoCodeResponse, RefundResponse } from "@/types/order";
 import { PageResponse } from "@/types/event";
 
 export const orderService = {
@@ -51,6 +51,20 @@ export const orderService = {
     const res = await api.post<ApiResponse<{ RspCode: string; Message: string }>>(
       "/v1/payment/vnpay/verify-return",
       params
+    );
+    return res.data.data;
+  },
+
+  async requestRefund(orderId: number): Promise<RefundResponse> {
+    const res = await api.post<ApiResponse<RefundResponse>>(
+      `/v1/orders/${orderId}/refund`
+    );
+    return res.data.data;
+  },
+
+  async getRefundStatus(orderId: number): Promise<RefundResponse | null> {
+    const res = await api.get<ApiResponse<RefundResponse | null>>(
+      `/v1/orders/${orderId}/refund`
     );
     return res.data.data;
   },
