@@ -4,6 +4,8 @@ import com.example.ticketbox.dto.AdminEventResponse;
 import com.example.ticketbox.dto.AdminOrderResponse;
 import com.example.ticketbox.dto.AdminOverviewResponse;
 import com.example.ticketbox.dto.AdminUserResponse;
+import com.example.ticketbox.dto.OrganizerApplicationResponse;
+import com.example.ticketbox.dto.ReviewApplicationRequest;
 import com.example.ticketbox.exception.BadRequestException;
 import com.example.ticketbox.exception.ResourceNotFoundException;
 import com.example.ticketbox.model.*;
@@ -32,6 +34,7 @@ public class AdminService {
     private final OrderItemRepository orderItemRepository;
     private final TicketRepository ticketRepository;
     private final AuditLogService auditLogService;
+    private final OrganizerApplicationService organizerApplicationService;
 
     // ==================== Dashboard Overview ====================
 
@@ -247,6 +250,18 @@ public class AdminService {
                 .createdDate(order.getCreatedDate())
                 .orderItems(items)
                 .build();
+    }
+
+    // ==================== Organizer Application Management ====================
+
+    public Page<OrganizerApplicationResponse> getOrganizerApplications(ApplicationStatus status, Pageable pageable) {
+        return organizerApplicationService.getApplications(status, pageable);
+    }
+
+    @Transactional
+    public OrganizerApplicationResponse reviewOrganizerApplication(Long adminId, Long appId,
+                                                                    ReviewApplicationRequest request) {
+        return organizerApplicationService.reviewApplication(adminId, appId, request);
     }
 
     private AdminEventResponse toAdminEventResponse(Event event) {

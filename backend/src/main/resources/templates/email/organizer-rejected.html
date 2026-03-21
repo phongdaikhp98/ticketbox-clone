@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Đơn đăng ký Organizer chưa được chấp thuận</title>
+</head>
+<body style="margin:0;padding:0;background-color:#18181b;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#18181b;padding:32px 0;">
+  <tr>
+    <td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#27272a;border-radius:16px;overflow:hidden;border:1px solid #3f3f46;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#dc2626,#b91c1c);padding:32px 40px;text-align:center;">
+            <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">Ticketbox</div>
+            <div style="font-size:40px;margin-top:16px;">📋</div>
+            <div style="font-size:22px;font-weight:600;color:#ffffff;margin-top:8px;">Đơn đăng ký chưa được chấp thuận</div>
+            <div style="font-size:14px;color:#fecaca;margin-top:4px;">Xem lý do và đăng ký lại khi đủ điều kiện</div>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:32px 40px;">
+
+            <!-- Greeting -->
+            <p style="color:#e4e4e7;font-size:15px;margin:0 0 24px;">
+              Xin chào <strong style="color:#f87171;" th:text="${userName}">Nguyễn Văn A</strong>,
+              <br/><br/>
+              Cảm ơn bạn đã quan tâm đến nền tảng Ticketbox. Sau khi xem xét, chúng tôi rất tiếc phải thông báo rằng đơn đăng ký Organizer của bạn chưa được chấp thuận lần này.
+            </p>
+
+            <!-- Org Info -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#3f3f46;border-radius:10px;padding:16px;margin-bottom:24px;">
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;white-space:nowrap;">Tên tổ chức</td>
+                <td style="color:#ffffff;font-size:13px;font-weight:600;text-align:right;padding:6px 8px;" th:text="${orgName}">Tên tổ chức</td>
+              </tr>
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;white-space:nowrap;">Trạng thái</td>
+                <td style="color:#f87171;font-size:13px;font-weight:600;text-align:right;padding:6px 8px;">Chưa được chấp thuận</td>
+              </tr>
+            </table>
+
+            <!-- Review Note -->
+            <div style="font-size:14px;font-weight:600;color:#a1a1aa;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">Lý do từ chối</div>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#450a0a;border:1px solid #991b1b;border-radius:10px;padding:20px;margin-bottom:24px;">
+              <tr>
+                <td>
+                  <p style="color:#fca5a5;font-size:14px;line-height:1.7;margin:0;" th:text="${reviewNote}">Lý do từ chối sẽ hiển thị ở đây.</p>
+                </td>
+              </tr>
+            </table>
+
+            <!-- What to do next -->
+            <div style="font-size:14px;font-weight:600;color:#a1a1aa;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">Bước tiếp theo</div>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#1c1917;border:1px solid #44403c;border-radius:10px;padding:16px;margin-bottom:24px;">
+              <tr>
+                <td>
+                  <ul style="color:#d6d3d1;font-size:13px;line-height:1.8;margin:0;padding-left:20px;">
+                    <li>Xem xét lý do từ chối ở trên</li>
+                    <li>Bổ sung hoặc cập nhật thông tin cần thiết</li>
+                    <li>Gửi lại đơn đăng ký khi đã đáp ứng yêu cầu</li>
+                  </ul>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CTA Button -->
+            <div style="text-align:center;margin-top:8px;">
+              <a th:href="${reapplyUrl}" href="#"
+                 style="display:inline-block;background-color:#dc2626;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 36px;border-radius:10px;letter-spacing:0.3px;">
+                Đăng ký lại
+              </a>
+            </div>
+
+            <p style="color:#71717a;font-size:13px;text-align:center;margin-top:24px;">
+              Nếu bạn cần hỗ trợ, vui lòng liên hệ chúng tôi qua support@ticketbox.vn
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background-color:#18181b;padding:24px 40px;text-align:center;border-top:1px solid #3f3f46;">
+            <div style="color:#52525b;font-size:12px;">© 2025 Ticketbox · Hỗ trợ: support@ticketbox.vn</div>
+            <div style="color:#52525b;font-size:11px;margin-top:4px;">Email này được gửi tự động, vui lòng không trả lời.</div>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

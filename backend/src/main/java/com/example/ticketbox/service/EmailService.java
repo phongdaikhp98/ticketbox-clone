@@ -2,6 +2,7 @@ package com.example.ticketbox.service;
 
 import com.example.ticketbox.model.Order;
 import com.example.ticketbox.model.OrderItem;
+import com.example.ticketbox.model.Ticket;
 import com.example.ticketbox.repository.OrderRepository;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
@@ -20,6 +21,7 @@ import java.text.NumberFormat;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -132,6 +134,66 @@ public class EmailService {
             log.info("Admin order notification sent to {} for order #{}", adminEmail, orderId);
         } catch (Exception e) {
             log.warn("Failed to send admin order notification for order #{}: {}", orderId, e.getMessage());
+        }
+    }
+
+    public void sendEventReminderEmail(Ticket ticket) {
+        try {
+            String eventDateFormatted = ticket.getEvent().getEventDate() != null
+                    ? ticket.getEvent().getEventDate().format(DateTimeFormatter.ofPattern("HH:mm, dd/MM/yyyy"))
+                    : "";
+
+            Context ctx = new Context();
+            ctx.setVariable("userName", ticket.getUser().getFullName());
+            ctx.setVariable("eventTitle", ticket.getEvent().getTitle());
+            ctx.setVariable("eventDate", eventDateFormatted);
+            ctx.setVariable("eventLocation", Optional.ofNullable(ticket.getEvent().getLocation()).orElse(""));
+            ctx.setVariable("ticketCode", ticket.getTicketCode());
+            ctx.setVariable("seatCode", ticket.getSeatCode());
+            ctx.setVariable("ticketTypeName", ticket.getTicketType().getName());
+            ctx.setVariable("ticketUrl", frontendUrl + "/tickets/" + ticket.getId());
+
+            String html = templateEngine.process("email/event-reminder", ctx);
+            String subject = "Nhắc nhở: Sự kiện \"" + ticket.getEvent().getTitle() + "\" diễn ra vào ngày mai!";
+            sendHtmlEmail(ticket.getUser().getEmail(), subject, html);
+            log.info("Event reminder email sent to {} for ticket #{}", ticket.getUser().getEmail(), ticket.getId());
+        } catch (Exception e) {
+            log.warn("Failed to send event reminder email for ticket #{}: {}", ticket.getId(), e.getMessage());
+        }
+    }
+
+    @Async("emailExecutor")
+    public void sendOrganizerApprovalEmail(String toEmail, String userName, String orgName) {
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("userName", userName);
+            ctx.setVariable("orgName", orgName);
+            ctx.setVariable("dashboardUrl", frontendUrl + "/organizer/dashboard");
+
+            String html = templateEngine.process("email/organizer-approved", ctx);
+            String subject = "Chúc mừng! Đơn đăng ký Organizer của bạn đã được duyệt";
+            sendHtmlEmail(toEmail, subject, html);
+            log.info("Organizer approval email sent to {}", toEmail);
+        } catch (Exception e) {
+            log.warn("Failed to send organizer approval email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
+    @Async("emailExecutor")
+    public void sendOrganizerRejectionEmail(String toEmail, String userName, String orgName, String reviewNote) {
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("userName", userName);
+            ctx.setVariable("orgName", orgName);
+            ctx.setVariable("reviewNote", reviewNote);
+            ctx.setVariable("reapplyUrl", frontendUrl + "/organizer-applications");
+
+            String html = templateEngine.process("email/organizer-rejected", ctx);
+            String subject = "Thông báo: Đơn đăng ký Organizer của bạn chưa được chấp thuận";
+            sendHtmlEmail(toEmail, subject, html);
+            log.info("Organizer rejection email sent to {}", toEmail);
+        } catch (Exception e) {
+            log.warn("Failed to send organizer rejection email to {}: {}", toEmail, e.getMessage());
         }
     }
 

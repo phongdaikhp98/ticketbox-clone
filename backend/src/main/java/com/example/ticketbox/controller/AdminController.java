@@ -2,6 +2,7 @@ package com.example.ticketbox.controller;
 
 import com.example.ticketbox.common.ApiResponse;
 import com.example.ticketbox.dto.*;
+import com.example.ticketbox.model.ApplicationStatus;
 import com.example.ticketbox.model.EventStatus;
 import com.example.ticketbox.model.OrderStatus;
 import com.example.ticketbox.model.Role;
@@ -11,6 +12,8 @@ import com.example.ticketbox.service.AuditLogService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -110,6 +113,28 @@ public class AdminController {
         Long adminId = userDetails.getId();
         return ResponseEntity.ok(ApiResponse.success(
                 adminService.changeEventStatus(adminId, id, status)));
+    }
+
+    // ==================== Organizer Application Management ====================
+
+    @GetMapping("/organizer-applications")
+    public ResponseEntity<ApiResponse<Page<OrganizerApplicationResponse>>> getOrganizerApplications(
+            @RequestParam(required = false) ApplicationStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"));
+        return ResponseEntity.ok(ApiResponse.success(
+                adminService.getOrganizerApplications(status, pageable)));
+    }
+
+    @PatchMapping("/organizer-applications/{id}/review")
+    public ResponseEntity<ApiResponse<OrganizerApplicationResponse>> reviewOrganizerApplication(
+            @PathVariable Long id,
+            @Valid @RequestBody ReviewApplicationRequest request,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long adminId = userDetails.getId();
+        return ResponseEntity.ok(ApiResponse.success(
+                adminService.reviewOrganizerApplication(adminId, id, request)));
     }
 
     // ==================== Audit Logs ====================

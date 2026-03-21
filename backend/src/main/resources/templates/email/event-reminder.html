@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Nhắc nhở sự kiện</title>
+</head>
+<body style="margin:0;padding:0;background-color:#18181b;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#18181b;padding:32px 0;">
+  <tr>
+    <td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;background-color:#27272a;border-radius:16px;overflow:hidden;border:1px solid #3f3f46;">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#d97706,#b45309);padding:32px 40px;text-align:center;">
+            <div style="font-size:28px;font-weight:700;color:#ffffff;letter-spacing:-0.5px;">Ticketbox</div>
+            <div style="font-size:40px;margin-top:16px;">🔔</div>
+            <div style="font-size:22px;font-weight:600;color:#ffffff;margin-top:8px;">Sự kiện diễn ra vào ngày mai!</div>
+            <div style="font-size:14px;color:#fde68a;margin-top:4px;">Đừng quên chuẩn bị vé của bạn</div>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:32px 40px;">
+
+            <!-- Greeting -->
+            <p style="color:#e4e4e7;font-size:15px;margin:0 0 24px;">
+              Xin chào <strong style="color:#fbbf24;" th:text="${userName}">Nguyễn Văn A</strong>,
+              <br/>
+              Chúng tôi muốn nhắc bạn rằng sự kiện bạn đặt vé sắp diễn ra vào ngày mai. Hãy chuẩn bị sẵn sàng nhé!
+            </p>
+
+            <!-- Event Info -->
+            <div style="font-size:14px;font-weight:600;color:#a1a1aa;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">Thông tin sự kiện</div>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#3f3f46;border-radius:10px;padding:16px;margin-bottom:24px;">
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;white-space:nowrap;">Sự kiện</td>
+                <td style="color:#ffffff;font-size:13px;font-weight:600;text-align:right;padding:6px 8px;" th:text="${eventTitle}">Tên sự kiện</td>
+              </tr>
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;white-space:nowrap;">Thời gian</td>
+                <td style="color:#fbbf24;font-size:13px;font-weight:600;text-align:right;padding:6px 8px;" th:text="${eventDate}">10:00, 01/01/2025</td>
+              </tr>
+              <tr th:if="${eventLocation != null and !#strings.isEmpty(eventLocation)}">
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;white-space:nowrap;">Địa điểm</td>
+                <td style="color:#ffffff;font-size:13px;text-align:right;padding:6px 8px;" th:text="${eventLocation}">Hà Nội</td>
+              </tr>
+            </table>
+
+            <!-- Ticket Info -->
+            <div style="font-size:14px;font-weight:600;color:#a1a1aa;margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">Thông tin vé</div>
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#3f3f46;border-radius:10px;padding:16px;margin-bottom:24px;">
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;white-space:nowrap;">Mã vé</td>
+                <td style="color:#fbbf24;font-size:14px;font-weight:700;text-align:right;padding:6px 8px;letter-spacing:1px;" th:text="${ticketCode}">TBX-20250101-ABC123</td>
+              </tr>
+              <tr>
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;white-space:nowrap;">Loại vé</td>
+                <td style="color:#ffffff;font-size:13px;text-align:right;padding:6px 8px;" th:text="${ticketTypeName}">VIP</td>
+              </tr>
+              <tr th:if="${seatCode != null and !#strings.isEmpty(seatCode)}">
+                <td style="color:#a1a1aa;font-size:13px;padding:6px 8px;white-space:nowrap;">Ghế ngồi</td>
+                <td style="color:#ffffff;font-size:13px;font-weight:600;text-align:right;padding:6px 8px;" th:text="${seatCode}">A1</td>
+              </tr>
+            </table>
+
+            <!-- Reminder Note -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#451a03;border:1px solid #92400e;border-radius:10px;padding:16px;margin-bottom:24px;">
+              <tr>
+                <td>
+                  <div style="color:#fde68a;font-size:13px;font-weight:600;margin-bottom:6px;">Lưu ý quan trọng</div>
+                  <div style="color:#fcd34d;font-size:13px;line-height:1.6;">
+                    Vui lòng mang theo mã vé hoặc mã QR khi đến tham dự sự kiện. Bạn có thể xem và tải vé trong ứng dụng Ticketbox.
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- CTA Button -->
+            <div style="text-align:center;margin-top:8px;">
+              <a th:href="${ticketUrl}" href="#"
+                 style="display:inline-block;background-color:#d97706;color:#ffffff;text-decoration:none;font-size:15px;font-weight:600;padding:14px 36px;border-radius:10px;letter-spacing:0.3px;">
+                🎫 Xem vé của tôi
+              </a>
+            </div>
+
+            <p style="color:#71717a;font-size:13px;text-align:center;margin-top:24px;">
+              Chúc bạn có một trải nghiệm tuyệt vời tại sự kiện!
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background-color:#18181b;padding:24px 40px;text-align:center;border-top:1px solid #3f3f46;">
+            <div style="color:#52525b;font-size:12px;">© 2025 Ticketbox · Hỗ trợ: support@ticketbox.vn</div>
+            <div style="color:#52525b;font-size:11px;margin-top:4px;">Email này được gửi tự động, vui lòng không trả lời.</div>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

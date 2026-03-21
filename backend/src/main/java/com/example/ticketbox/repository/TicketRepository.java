@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,6 +46,11 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     @Query("SELECT t.ticketType.id, COUNT(t) FROM Ticket t WHERE t.event.id = :eventId AND t.status = 'USED' GROUP BY t.ticketType.id")
     List<Object[]> countCheckedInByEventIdGroupByTicketType(@Param("eventId") Long eventId);
+
+    @Query("SELECT t FROM Ticket t JOIN FETCH t.user JOIN FETCH t.event JOIN FETCH t.ticketType " +
+           "WHERE t.status = 'ISSUED' AND t.event.eventDate BETWEEN :windowStart AND :windowEnd")
+    List<Ticket> findIssuedTicketsForReminderWindow(@Param("windowStart") LocalDateTime windowStart,
+                                                    @Param("windowEnd") LocalDateTime windowEnd);
 
     @Query("SELECT t FROM Ticket t JOIN FETCH t.user JOIN FETCH t.ticketType " +
            "WHERE t.event.id = :eventId " +
