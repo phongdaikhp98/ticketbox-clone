@@ -59,7 +59,6 @@ class CartServiceTest {
                 .location("Test Location")
                 .eventDate(LocalDateTime.now().plusDays(7))
                 .status(EventStatus.PUBLISHED)
-                .category(EventCategory.MUSIC)
                 .organizer(testUser)
                 .ticketTypes(new ArrayList<>())
                 .build();
