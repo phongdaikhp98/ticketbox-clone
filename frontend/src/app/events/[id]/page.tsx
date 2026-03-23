@@ -12,6 +12,7 @@ import { wishlistService } from "@/lib/wishlist-service";
 import { Event } from "@/types/event";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCart } from "@/contexts/CartContext";
+import ShareButtons from "@/components/ShareButtons";
 
 export default function EventDetailPage() {
   const params = useParams();
@@ -207,7 +208,13 @@ export default function EventDetailPage() {
                 )}
               </div>
 
-              <h1 className="text-3xl font-bold text-white">{event.title}</h1>
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <h1 className="text-3xl font-bold text-white flex-1">{event.title}</h1>
+                <ShareButtons
+                  url={typeof window !== "undefined" ? window.location.href : `http://localhost:3000/events/${event.id}`}
+                  title={event.title}
+                />
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                 <div>

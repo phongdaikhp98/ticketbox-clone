@@ -7,8 +7,39 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import { cartService } from "@/lib/cart-service";
 import { orderService } from "@/lib/order-service";
 import { CartResponse } from "@/types/cart";
-import { PAYMENT_METHODS, ValidatePromoCodeResponse } from "@/types/order";
+import { ValidatePromoCodeResponse } from "@/types/order";
 import { useCart } from "@/contexts/CartContext";
+
+const PAYMENT_OPTIONS = [
+  {
+    id: "E_WALLET",
+    label: "VNPay",
+    sublabel: "Thanh toán qua cổng VNPay",
+    available: true,
+    badge: { text: "VNPay", color: "bg-blue-600" },
+  },
+  {
+    id: "MOMO",
+    label: "MoMo",
+    sublabel: "Ví điện tử MoMo",
+    available: false,
+    badge: { text: "MoMo", color: "bg-pink-600" },
+  },
+  {
+    id: "ZALOPAY",
+    label: "ZaloPay",
+    sublabel: "Ví điện tử ZaloPay",
+    available: false,
+    badge: { text: "ZaloPay", color: "bg-sky-500" },
+  },
+  {
+    id: "BANKING_QR",
+    label: "QR Banking",
+    sublabel: "Quét mã QR chuyển khoản ngân hàng",
+    available: false,
+    badge: { text: "QR", color: "bg-orange-500" },
+  },
+];
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -18,6 +49,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState("E_WALLET");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [comingSoonToast, setComingSoonToast] = useState(false);
 
   // Promo code states
   const [promoInput, setPromoInput] = useState("");
@@ -70,6 +102,11 @@ export default function CheckoutPage() {
     setAppliedPromo("");
     setPromoResult(null);
     setPromoError("");
+  };
+
+  const showComingSoon = () => {
+    setComingSoonToast(true);
+    setTimeout(() => setComingSoonToast(false), 3000);
   };
 
   const handleCheckout = async () => {
@@ -218,25 +255,48 @@ export default function CheckoutPage() {
               <div className="bg-zinc-800 rounded-lg p-6">
                 <h2 className="text-white font-semibold mb-4">Chọn phương thức thanh toán</h2>
                 <div className="space-y-2">
-                  {Object.entries(PAYMENT_METHODS).map(([value, label]) => (
-                    <label
-                      key={value}
-                      className={`flex items-center p-3 rounded-lg cursor-pointer transition ${
-                        paymentMethod === value
+                  {PAYMENT_OPTIONS.map((option) => (
+                    <div
+                      key={option.id}
+                      onClick={() => {
+                        if (option.available) {
+                          setPaymentMethod(option.id);
+                        } else {
+                          showComingSoon();
+                        }
+                      }}
+                      className={`flex items-center justify-between p-3 rounded-lg cursor-pointer transition ${
+                        !option.available
+                          ? "bg-zinc-700/50 border border-transparent opacity-60 hover:opacity-80"
+                          : paymentMethod === option.id
                           ? "bg-primary/10 border border-primary"
                           : "bg-zinc-700 border border-transparent hover:border-zinc-600"
                       }`}
                     >
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value={value}
-                        checked={paymentMethod === value}
-                        onChange={(e) => setPaymentMethod(e.target.value)}
-                        className="mr-3 accent-primary"
-                      />
-                      <span className="text-white">{label}</span>
-                    </label>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
+                          option.available && paymentMethod === option.id
+                            ? "border-primary"
+                            : "border-zinc-500"
+                        }`}>
+                          {option.available && paymentMethod === option.id && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-primary" />
+                          )}
+                        </div>
+                        <span className={`w-16 text-center text-xs font-bold text-white rounded px-2 py-0.5 ${option.badge.color}`}>
+                          {option.badge.text}
+                        </span>
+                        <div>
+                          <p className="text-white text-sm font-medium">{option.label}</p>
+                          <p className="text-gray-400 text-xs">{option.sublabel}</p>
+                        </div>
+                      </div>
+                      {!option.available && (
+                        <span className="text-xs text-yellow-500 border border-yellow-500/40 rounded px-2 py-0.5 flex-shrink-0">
+                          Sắp ra mắt
+                        </span>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
@@ -249,8 +309,8 @@ export default function CheckoutPage() {
 
               <button
                 onClick={handleCheckout}
-                disabled={submitting}
-                className="w-full py-3 bg-primary text-white rounded-lg hover:bg-green-600 transition font-medium disabled:opacity-50"
+                disabled={submitting || paymentMethod !== "E_WALLET"}
+                className="w-full py-3 bg-primary text-white rounded-lg hover:bg-green-600 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? "Đang xử lý..." : "Đặt hàng"}
               </button>
@@ -258,6 +318,17 @@ export default function CheckoutPage() {
           ) : null}
         </main>
       </div>
+
+      {/* Coming soon toast */}
+      {comingSoonToast && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-zinc-800 border border-yellow-500/40 text-white px-5 py-3 rounded-xl shadow-lg animate-fade-in">
+          <span className="text-yellow-400 text-lg">🚧</span>
+          <div>
+            <p className="font-medium text-sm">Chức năng đang phát triển</p>
+            <p className="text-xs text-gray-400">Vui lòng sử dụng VNPay để thanh toán</p>
+          </div>
+        </div>
+      )}
     </ProtectedRoute>
   );
 }
