@@ -76,7 +76,7 @@ public class TicketController {
 
         CheckInResponse response;
         if (isAdmin) {
-            response = ticketService.checkInAsAdmin(request.getTicketCode());
+            response = ticketService.checkInAsAdmin(request.getTicketCode(), userDetails.getId());
         } else {
             response = ticketService.checkIn(request.getTicketCode(), userDetails.getId());
         }

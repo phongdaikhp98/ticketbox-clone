@@ -28,6 +28,7 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final EventRepository eventRepository;
     private final QrCodeService qrCodeService;
+    private final AuditLogService auditLogService;
 
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final String CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -130,6 +131,10 @@ public class TicketService {
         ticket.setUsedAt(LocalDateTime.now());
         ticketRepository.save(ticket);
 
+        auditLogService.log(organizerId, "CHECK_IN", "TICKET",
+                ticket.getId(), ticketCode,
+                "ISSUED", "USED");
+
         return CheckInResponse.builder()
                 .ticketCode(ticketCode)
                 .status("SUCCESS")
@@ -153,7 +158,7 @@ public class TicketService {
 
     // Allow ADMIN to check-in without organizer validation
     @Transactional
-    public CheckInResponse checkInAsAdmin(String ticketCode) {
+    public CheckInResponse checkInAsAdmin(String ticketCode, Long adminId) {
         Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with code: " + ticketCode));
 
@@ -184,6 +189,10 @@ public class TicketService {
         ticket.setStatus(TicketStatus.USED);
         ticket.setUsedAt(LocalDateTime.now());
         ticketRepository.save(ticket);
+
+        auditLogService.log(adminId, "CHECK_IN", "TICKET",
+                ticket.getId(), ticketCode,
+                "ISSUED", "USED");
 
         return CheckInResponse.builder()
                 .ticketCode(ticketCode)

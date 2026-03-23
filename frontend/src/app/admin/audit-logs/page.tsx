@@ -14,20 +14,41 @@ const ACTION_LABELS: Record<string, string> = {
   CHANGE_ROLE: "Đổi vai trò",
   TOGGLE_ACTIVE: "Bật/Tắt tài khoản",
   TOGGLE_FEATURED: "Nổi bật sự kiện",
+  SET_FEATURED_ORDER: "Đặt thứ tự nổi bật",
   CHANGE_EVENT_STATUS: "Đổi trạng thái",
+  APPROVE_ORGANIZER: "Duyệt đơn tổ chức",
+  REJECT_ORGANIZER: "Từ chối đơn tổ chức",
+  CHECK_IN: "Check-in vé",
 };
 
 const ACTION_COLORS: Record<string, string> = {
   CHANGE_ROLE: "bg-blue-900/30 text-blue-400",
   TOGGLE_ACTIVE: "bg-yellow-900/30 text-yellow-400",
   TOGGLE_FEATURED: "bg-purple-900/30 text-purple-400",
+  SET_FEATURED_ORDER: "bg-indigo-900/30 text-indigo-400",
   CHANGE_EVENT_STATUS: "bg-orange-900/30 text-orange-400",
+  APPROVE_ORGANIZER: "bg-green-900/30 text-green-400",
+  REJECT_ORGANIZER: "bg-red-900/30 text-red-400",
+  CHECK_IN: "bg-teal-900/30 text-teal-400",
 };
 
 const ENTITY_TYPE_LABELS: Record<string, string> = {
   USER: "Người dùng",
   EVENT: "Sự kiện",
+  OrganizerApplication: "Đơn tổ chức",
+  TICKET: "Vé",
 };
+
+const ACTION_FILTER_OPTIONS = [
+  { value: "", label: "Tất cả hành động" },
+  { value: "CHANGE_ROLE", label: "Đổi vai trò" },
+  { value: "TOGGLE_ACTIVE", label: "Bật/Tắt tài khoản" },
+  { value: "TOGGLE_FEATURED", label: "Nổi bật sự kiện" },
+  { value: "CHANGE_EVENT_STATUS", label: "Đổi trạng thái" },
+  { value: "APPROVE_ORGANIZER", label: "Duyệt đơn tổ chức" },
+  { value: "REJECT_ORGANIZER", label: "Từ chối đơn" },
+  { value: "CHECK_IN", label: "Check-in vé" },
+];
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -62,16 +83,18 @@ export default function AuditLogsPage() {
   const [error, setError] = useState("");
   const [page, setPage] = useState(0);
   const [entityTypeFilter, setEntityTypeFilter] = useState("");
+  const [actionFilter, setActionFilter] = useState("");
 
   const fetchLogs = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
-      const params: { entityType?: string; page: number; size: number } = {
+      const params: { entityType?: string; action?: string; page: number; size: number } = {
         page,
         size: 20,
       };
       if (entityTypeFilter) params.entityType = entityTypeFilter;
+      if (actionFilter) params.action = actionFilter;
       const result = await auditLogService.getLogs(params);
       setData(result);
     } catch {
@@ -79,15 +102,19 @@ export default function AuditLogsPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, entityTypeFilter]);
+  }, [page, entityTypeFilter, actionFilter]);
 
   useEffect(() => {
     fetchLogs();
   }, [fetchLogs]);
 
-  // Reset to page 0 whenever the filter changes
-  const handleFilterChange = (value: string) => {
+  const handleEntityTypeChange = (value: string) => {
     setEntityTypeFilter(value);
+    setPage(0);
+  };
+
+  const handleActionChange = (value: string) => {
+    setActionFilter(value);
     setPage(0);
   };
 
@@ -115,28 +142,45 @@ export default function AuditLogsPage() {
           </div>
 
           {/* Filter bar */}
-          <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4 mb-6 flex items-center gap-4">
-            <span className="text-gray-400 text-sm whitespace-nowrap">
-              Lọc theo đối tượng:
-            </span>
-            <div className="flex gap-2">
-              {[
-                { value: "", label: "Tất cả" },
-                { value: "USER", label: "Người dùng" },
-                { value: "EVENT", label: "Sự kiện" },
-              ].map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => handleFilterChange(opt.value)}
-                  className={`px-4 py-1.5 rounded-lg text-sm font-medium transition ${
-                    entityTypeFilter === opt.value
-                      ? "bg-primary text-white"
-                      : "bg-zinc-700 text-gray-300 hover:bg-zinc-600"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+          <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4 mb-6 flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400 text-sm whitespace-nowrap">Đối tượng:</span>
+              <div className="flex gap-2">
+                {[
+                  { value: "", label: "Tất cả" },
+                  { value: "USER", label: "Người dùng" },
+                  { value: "EVENT", label: "Sự kiện" },
+                  { value: "OrganizerApplication", label: "Đơn tổ chức" },
+                  { value: "TICKET", label: "Vé" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => handleEntityTypeChange(opt.value)}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${
+                      entityTypeFilter === opt.value
+                        ? "bg-primary text-white"
+                        : "bg-zinc-700 text-gray-300 hover:bg-zinc-600"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-gray-400 text-sm whitespace-nowrap">Hành động:</span>
+              <select
+                value={actionFilter}
+                onChange={(e) => handleActionChange(e.target.value)}
+                className="bg-zinc-700 text-gray-200 text-sm rounded-lg px-3 py-1.5 border border-zinc-600 focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                {ACTION_FILTER_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

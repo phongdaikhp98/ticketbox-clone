@@ -196,8 +196,9 @@ public class AdminController {
     @GetMapping("/audit-logs")
     public ResponseEntity<ApiResponse<Page<AuditLogResponse>>> getAuditLogs(
             @RequestParam(required = false) String entityType,
+            @RequestParam(required = false) String action,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(ApiResponse.success(auditLogService.getLogs(entityType, page, size)));
+        return ResponseEntity.ok(ApiResponse.success(auditLogService.getLogs(entityType, action, page, size)));
     }
 }

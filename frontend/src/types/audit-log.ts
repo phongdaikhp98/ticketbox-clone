@@ -3,10 +3,13 @@ export interface AuditLog {
   adminId: number;
   adminName: string;
   adminEmail: string;
-  action: string; // CHANGE_ROLE | TOGGLE_ACTIVE | TOGGLE_FEATURED | CHANGE_EVENT_STATUS
-  entityType: string; // USER | EVENT
+  // Actions: CHANGE_ROLE | TOGGLE_ACTIVE | TOGGLE_FEATURED | SET_FEATURED_ORDER
+  //          | CHANGE_EVENT_STATUS | APPROVE_ORGANIZER | REJECT_ORGANIZER | CHECK_IN
+  action: string;
+  // Entity types: USER | EVENT | OrganizerApplication | TICKET
+  entityType: string;
   entityId: number;
-  entityName: string; // email or event title
+  entityName: string;
   oldValue: string;
   newValue: string;
   createdDate: string;

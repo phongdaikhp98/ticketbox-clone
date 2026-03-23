@@ -42,11 +42,21 @@ public class AuditLogService {
         }
     }
 
-    public Page<AuditLogResponse> getLogs(String entityType, int page, int size) {
+    public Page<AuditLogResponse> getLogs(String entityType, String action, int page, int size) {
         PageRequest pageable = PageRequest.of(page, size);
-        Page<AuditLog> logs = (entityType != null && !entityType.isBlank())
-                ? auditLogRepository.findByEntityTypeOrderByCreatedDateDesc(entityType, pageable)
-                : auditLogRepository.findAllByOrderByCreatedDateDesc(pageable);
+        boolean hasEntityType = entityType != null && !entityType.isBlank();
+        boolean hasAction = action != null && !action.isBlank();
+
+        Page<AuditLog> logs;
+        if (hasEntityType && hasAction) {
+            logs = auditLogRepository.findByEntityTypeAndActionOrderByCreatedDateDesc(entityType, action, pageable);
+        } else if (hasEntityType) {
+            logs = auditLogRepository.findByEntityTypeOrderByCreatedDateDesc(entityType, pageable);
+        } else if (hasAction) {
+            logs = auditLogRepository.findByActionOrderByCreatedDateDesc(action, pageable);
+        } else {
+            logs = auditLogRepository.findAllByOrderByCreatedDateDesc(pageable);
+        }
         return logs.map(this::toResponse);
     }
 

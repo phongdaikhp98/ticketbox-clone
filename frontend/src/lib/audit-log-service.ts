@@ -13,6 +13,7 @@ interface ApiResponse<T> {
 const auditLogService = {
   getLogs: async (params?: {
     entityType?: string;
+    action?: string;
     page?: number;
     size?: number;
   }): Promise<PageResponse<AuditLog>> => {

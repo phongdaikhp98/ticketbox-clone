@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 interface Props {
-  params: { id: string };
+  params: Promise<{ id: string }>;
   children: React.ReactNode;
 }
 
@@ -18,11 +18,12 @@ async function fetchEvent(id: string) {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const event = await fetchEvent(params.id);
+  const { id } = await params;
+  const event = await fetchEvent(id);
   if (!event) return { title: "Sự kiện | Ticketbox" };
 
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  const pageUrl = `${siteUrl}/events/${params.id}`;
+  const pageUrl = `${siteUrl}/events/${id}`;
   const description = event.description
     ? event.description.slice(0, 160)
     : `Sự kiện tại ${event.location}`;
