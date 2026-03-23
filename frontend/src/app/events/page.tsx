@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Header from "@/components/Header";
 import EventCard from "@/components/EventCard";
 import EventFilter from "@/components/EventFilter";
+import FeaturedEventsCarousel from "@/components/FeaturedEventsCarousel";
 import Pagination from "@/components/Pagination";
 import { eventService } from "@/lib/event-service";
 import { Event, EventFilterParams, PageResponse } from "@/types/event";
@@ -44,7 +45,9 @@ export default function EventsPage() {
     <div className="min-h-screen bg-secondary">
       <Header />
       <main className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-white mb-6">Events</h1>
+        <FeaturedEventsCarousel />
+
+        <h1 className="text-2xl font-bold text-white mb-6">Tất cả sự kiện</h1>
 
         <EventFilter onFilter={handleFilter} />
 
