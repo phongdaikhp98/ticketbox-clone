@@ -10,12 +10,16 @@ import com.example.ticketbox.model.Role;
 import com.example.ticketbox.security.UserDetailsImpl;
 import com.example.ticketbox.service.AdminService;
 import com.example.ticketbox.service.AuditLogService;
+import com.example.ticketbox.service.ExportService;
 import com.example.ticketbox.service.RefundService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,6 +34,7 @@ public class AdminController {
     private final AdminService adminService;
     private final AuditLogService auditLogService;
     private final RefundService refundService;
+    private final ExportService exportService;
 
     // ==================== Dashboard ====================
 
@@ -108,6 +113,15 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.success(adminService.toggleFeatured(adminId, id)));
     }
 
+    @PatchMapping("/events/{id}/featured-order")
+    public ResponseEntity<ApiResponse<AdminEventResponse>> setFeaturedOrder(
+            @PathVariable Long id,
+            @RequestParam Integer order,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        return ResponseEntity.ok(ApiResponse.success(
+                adminService.setFeaturedOrder(userDetails.getId(), id, order)));
+    }
+
     @PatchMapping("/events/{id}/status")
     public ResponseEntity<ApiResponse<AdminEventResponse>> changeEventStatus(
             @PathVariable Long id,
@@ -149,6 +163,32 @@ public class AdminController {
             @RequestParam(defaultValue = "10") int size) {
         PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdDate"));
         return ResponseEntity.ok(ApiResponse.success(refundService.getAllRefunds(status, pageable)));
+    }
+
+    // ==================== Export ====================
+
+    @GetMapping("/export/orders")
+    public ResponseEntity<byte[]> exportOrders() {
+        return buildExcelResponse(exportService.exportOrders(), "orders.xlsx");
+    }
+
+    @GetMapping("/export/users")
+    public ResponseEntity<byte[]> exportUsers() {
+        return buildExcelResponse(exportService.exportUsers(), "users.xlsx");
+    }
+
+    @GetMapping("/export/revenue")
+    public ResponseEntity<byte[]> exportRevenue() {
+        return buildExcelResponse(exportService.exportRevenue(), "revenue.xlsx");
+    }
+
+    private ResponseEntity<byte[]> buildExcelResponse(byte[] data, String filename) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType(
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
+        headers.setContentDisposition(
+                ContentDisposition.attachment().filename(filename).build());
+        return ResponseEntity.ok().headers(headers).body(data);
     }
 
     // ==================== Audit Logs ====================

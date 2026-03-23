@@ -65,6 +65,7 @@ export interface AdminEvent {
   category: string;
   status: string;
   isFeatured: boolean;
+  featuredOrder: number;
   totalCapacity: number;
   totalSold: number;
   eventDate: string;

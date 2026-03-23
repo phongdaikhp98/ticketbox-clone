@@ -191,6 +191,17 @@ public class AdminService {
     }
 
     @Transactional
+    public AdminEventResponse setFeaturedOrder(Long adminId, Long eventId, Integer order) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
+        String oldVal = String.valueOf(event.getFeaturedOrder());
+        event.setFeaturedOrder(order);
+        eventRepository.save(event);
+        auditLogService.log(adminId, "SET_FEATURED_ORDER", "EVENT", eventId, event.getTitle(), oldVal, String.valueOf(order));
+        return toAdminEventResponse(event);
+    }
+
+    @Transactional
     public AdminEventResponse changeEventStatus(Long adminId, Long eventId, EventStatus newStatus) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found"));
@@ -281,6 +292,7 @@ public class AdminService {
                 .category(event.getCategory() != null ? event.getCategory().getName() : null)
                 .status(event.getStatus().name())
                 .isFeatured(event.getIsFeatured())
+                .featuredOrder(event.getFeaturedOrder())
                 .totalCapacity(totalCapacity)
                 .totalSold(totalSold)
                 .eventDate(event.getEventDate())

@@ -48,6 +48,7 @@ export default function AdminOrdersPage() {
   const [search, setSearch] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [exportLoading, setExportLoading] = useState(false);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -85,12 +86,23 @@ export default function AdminOrdersPage() {
                 {data ? `${data.totalElements.toLocaleString("vi-VN")} đơn hàng` : ""}
               </p>
             </div>
-            <Link
-              href="/"
-              className="text-gray-400 hover:text-white text-sm transition flex items-center gap-2"
-            >
-              ← Quay lại trang chủ
-            </Link>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={async () => {
+                  setExportLoading(true);
+                  try { await adminService.downloadExport("orders"); }
+                  catch { alert("Không thể xuất báo cáo"); }
+                  finally { setExportLoading(false); }
+                }}
+                disabled={exportLoading}
+                className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-sm rounded-lg transition flex items-center gap-2 disabled:opacity-50"
+              >
+                {exportLoading ? "Đang xuất..." : "⬇ Xuất Excel"}
+              </button>
+              <Link href="/" className="text-gray-400 hover:text-white text-sm transition">
+                ← Quay lại trang chủ
+              </Link>
+            </div>
           </div>
 
           {/* Filters */}

@@ -40,6 +40,8 @@ export default function AdminEventsPage() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [actionLoading, setActionLoading] = useState<number | null>(null);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<{ id: number; value: string } | null>(null);
 
   useEffect(() => {
     categoryService.getCategories().then(setCategories).catch(() => {});
@@ -86,6 +88,36 @@ export default function AdminEventsPage() {
     }
   };
 
+  const handleExport = async () => {
+    setExportLoading(true);
+    try {
+      await adminService.downloadExport("revenue");
+    } catch {
+      alert("Không thể xuất báo cáo");
+    } finally {
+      setExportLoading(false);
+    }
+  };
+
+  const handleSetFeaturedOrder = async (eventId: number, orderStr: string) => {
+    const order = parseInt(orderStr, 10);
+    if (isNaN(order) || order < 1) return;
+    setActionLoading(eventId);
+    setEditingOrder(null);
+    try {
+      const updated = await adminService.setFeaturedOrder(eventId, order);
+      setData((prev) =>
+        prev
+          ? { ...prev, content: prev.content.map((e) => (e.id === eventId ? updated : e)) }
+          : prev
+      );
+    } catch {
+      alert("Không thể cập nhật thứ tự nổi bật");
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
   const handleChangeStatus = async (eventId: number, newStatus: string) => {
     if (!newStatus) return;
     setActionLoading(eventId);
@@ -119,12 +151,21 @@ export default function AdminEventsPage() {
                 {data ? `${data.totalElements.toLocaleString("vi-VN")} sự kiện` : ""}
               </p>
             </div>
-            <Link
-              href="/"
-              className="text-gray-400 hover:text-white text-sm transition flex items-center gap-2"
-            >
-              ← Quay lại trang chủ
-            </Link>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleExport}
+                disabled={exportLoading}
+                className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-sm rounded-lg transition flex items-center gap-2 disabled:opacity-50"
+              >
+                {exportLoading ? "Đang xuất..." : "⬇ Xuất Excel"}
+              </button>
+              <Link
+                href="/"
+                className="text-gray-400 hover:text-white text-sm transition flex items-center gap-2"
+              >
+                ← Quay lại trang chủ
+              </Link>
+            </div>
           </div>
 
           {/* Filters */}
@@ -232,16 +273,43 @@ export default function AdminEventsPage() {
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <button
-                            onClick={() => handleToggleFeatured(event.id)}
-                            disabled={actionLoading === event.id}
-                            title={event.isFeatured ? "Bỏ nổi bật" : "Đặt nổi bật"}
-                            className={`text-xl transition disabled:opacity-50 ${
-                              event.isFeatured ? "text-yellow-400" : "text-zinc-600 hover:text-yellow-400"
-                            }`}
-                          >
-                            ★
-                          </button>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              onClick={() => handleToggleFeatured(event.id)}
+                              disabled={actionLoading === event.id}
+                              title={event.isFeatured ? "Bỏ nổi bật" : "Đặt nổi bật"}
+                              className={`text-xl transition disabled:opacity-50 ${
+                                event.isFeatured ? "text-yellow-400" : "text-zinc-600 hover:text-yellow-400"
+                              }`}
+                            >
+                              ★
+                            </button>
+                            {event.isFeatured && (
+                              editingOrder?.id === event.id ? (
+                                <input
+                                  type="number"
+                                  min={1}
+                                  autoFocus
+                                  value={editingOrder.value}
+                                  onChange={(e) => setEditingOrder({ id: event.id, value: e.target.value })}
+                                  onBlur={() => handleSetFeaturedOrder(event.id, editingOrder.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") handleSetFeaturedOrder(event.id, editingOrder.value);
+                                    if (e.key === "Escape") setEditingOrder(null);
+                                  }}
+                                  className="w-12 bg-zinc-700 border border-primary rounded px-1 py-0.5 text-white text-xs text-center focus:outline-none"
+                                />
+                              ) : (
+                                <button
+                                  onClick={() => setEditingOrder({ id: event.id, value: String(event.featuredOrder ?? 999) })}
+                                  title="Nhấn để đổi thứ tự"
+                                  className="text-xs text-zinc-400 hover:text-white border border-zinc-600 hover:border-zinc-400 rounded px-1.5 py-0.5 transition"
+                                >
+                                  #{event.featuredOrder ?? 999}
+                                </button>
+                              )
+                            )}
+                          </div>
                         </td>
                         <td className="px-4 py-3 text-gray-400 text-sm whitespace-nowrap">
                           {event.totalSold}/{event.totalCapacity}

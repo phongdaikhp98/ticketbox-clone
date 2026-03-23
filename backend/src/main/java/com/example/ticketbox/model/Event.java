@@ -69,6 +69,11 @@ public class Event {
     @Builder.Default
     private Boolean isFeatured = false;
 
+    /** Display order in the featured carousel (lower = higher priority). Default 999 = unordered. */
+    @Column(name = "FEATURED_ORDER", nullable = false)
+    @Builder.Default
+    private Integer featuredOrder = 999;
+
     @Column(name = "HAS_SEAT_MAP", nullable = false)
     @Builder.Default
     private boolean hasSeatMap = false;

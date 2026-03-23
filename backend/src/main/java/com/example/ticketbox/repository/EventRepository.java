@@ -18,7 +18,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecific
 
     Page<Event> findByStatus(EventStatus status, Pageable pageable);
 
-    @Query("SELECT e FROM Event e WHERE e.status = 'PUBLISHED' AND e.isFeatured = true ORDER BY e.eventDate ASC")
+    @Query("SELECT e FROM Event e WHERE e.status = 'PUBLISHED' AND e.isFeatured = true ORDER BY e.featuredOrder ASC, e.eventDate ASC")
     List<Event> findFeaturedEvents();
 
     Long countByOrganizerId(Long organizerId);

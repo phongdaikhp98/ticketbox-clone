@@ -105,4 +105,25 @@ export const adminService = {
     );
     return res.data.data;
   },
+
+  async setFeaturedOrder(eventId: number, order: number): Promise<AdminEvent> {
+    const res = await api.patch<ApiResponse<AdminEvent>>(
+      `/v1/admin/events/${eventId}/featured-order`,
+      null,
+      { params: { order } }
+    );
+    return res.data.data;
+  },
+
+  async downloadExport(type: "orders" | "users" | "revenue"): Promise<void> {
+    const res = await api.get(`/v1/admin/export/${type}`, { responseType: "blob" });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", `${type}.xlsx`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
 };

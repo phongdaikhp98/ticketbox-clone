@@ -64,6 +64,10 @@ public class SchemaUpgradeRunner implements ApplicationRunner {
                    "REFUND_REQUESTS table");
         executeDDL("CREATE SEQUENCE REFUND_SEQ START WITH 1 INCREMENT BY 1 NOCACHE",
                    "REFUND_SEQ sequence");
+
+        // Feature: Featured Events order
+        executeDDL("ALTER TABLE EVENTS ADD FEATURED_ORDER NUMBER(4) DEFAULT 999 NOT NULL",
+                   "EVENTS.FEATURED_ORDER column added");
     }
 
     private void executeDDL(String sql, String description) {

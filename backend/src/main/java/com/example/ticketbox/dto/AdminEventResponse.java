@@ -20,6 +20,7 @@ public class AdminEventResponse {
     private String category;
     private String status;
     private Boolean isFeatured;
+    private Integer featuredOrder;
     private Integer totalCapacity;
     private Integer totalSold;
     private LocalDateTime eventDate;
