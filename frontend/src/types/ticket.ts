@@ -24,6 +24,23 @@ export interface CheckInResponse {
   ticketTypeName: string;
 }
 
+export interface TicketTransferResponse {
+  id: number;
+  ticketId: number;
+  ticketCode: string;
+  eventTitle: string;
+  eventDate: string;
+  fromUserName: string;
+  fromUserEmail: string;
+  toEmail: string;
+  toUserName?: string;
+  transferToken: string;
+  status: string;
+  expiresAt: string;
+  completedAt?: string;
+  createdDate: string;
+}
+
 export const TICKET_STATUSES: Record<string, { label: string; color: string }> = {
   ISSUED: { label: "Chưa sử dụng", color: "bg-blue-100 text-blue-800" },
   USED: { label: "Đã sử dụng", color: "bg-green-100 text-green-800" },

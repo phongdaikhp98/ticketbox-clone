@@ -1,6 +1,6 @@
 import api from "./api";
 import { ApiResponse } from "@/types/auth";
-import { TicketResponse, CheckInRequest, CheckInResponse } from "@/types/ticket";
+import { TicketResponse, CheckInRequest, CheckInResponse, TicketTransferResponse } from "@/types/ticket";
 import { PageResponse } from "@/types/event";
 
 export const ticketService = {
@@ -51,6 +51,39 @@ export const ticketService = {
     const res = await api.post<ApiResponse<CheckInResponse>>(
       "/v1/tickets/check-in",
       data
+    );
+    return res.data.data;
+  },
+
+  async initiateTransfer(ticketId: number, toEmail: string): Promise<TicketTransferResponse> {
+    const res = await api.post<ApiResponse<TicketTransferResponse>>(
+      `/v1/tickets/${ticketId}/transfer`,
+      { toEmail }
+    );
+    return res.data.data;
+  },
+
+  async getTransferByToken(token: string): Promise<TicketTransferResponse> {
+    const res = await api.get<ApiResponse<TicketTransferResponse>>(
+      `/v1/ticket-transfers/${token}`
+    );
+    return res.data.data;
+  },
+
+  async acceptTransfer(token: string): Promise<TicketTransferResponse> {
+    const res = await api.post<ApiResponse<TicketTransferResponse>>(
+      `/v1/ticket-transfers/${token}/accept`
+    );
+    return res.data.data;
+  },
+
+  async cancelTransfer(transferId: number): Promise<void> {
+    await api.delete(`/v1/ticket-transfers/${transferId}`);
+  },
+
+  async getMyTransfers(): Promise<TicketTransferResponse[]> {
+    const res = await api.get<ApiResponse<TicketTransferResponse[]>>(
+      "/v1/ticket-transfers/my"
     );
     return res.data.data;
   },

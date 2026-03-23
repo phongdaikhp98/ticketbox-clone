@@ -15,6 +15,10 @@ export default function TicketDetailPage() {
   const [error, setError] = useState("");
   const [downloading, setDownloading] = useState(false);
   const [qrUrl, setQrUrl] = useState<string>("");
+  const [showTransferModal, setShowTransferModal] = useState(false);
+  const [transferEmail, setTransferEmail] = useState("");
+  const [transferring, setTransferring] = useState(false);
+  const [transferSuccess, setTransferSuccess] = useState(false);
 
   useEffect(() => {
     ticketService
@@ -23,7 +27,6 @@ export default function TicketDetailPage() {
       .catch(() => setError("Failed to load ticket"))
       .finally(() => setLoading(false));
 
-    // Fetch QR image via authenticated API call
     ticketService.getQrBlob(ticketId).then((blob) => {
       setQrUrl(URL.createObjectURL(blob));
     }).catch(() => {});
@@ -51,6 +54,23 @@ export default function TicketDetailPage() {
       alert("Failed to download PDF");
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const handleTransfer = async () => {
+    if (!transferEmail.trim()) return;
+    setTransferring(true);
+    try {
+      await ticketService.initiateTransfer(ticketId, transferEmail.trim());
+      setTransferSuccess(true);
+    } catch (err: unknown) {
+      const msg =
+        err && typeof err === "object" && "response" in err
+          ? (err as { response?: { data?: { message?: string } } }).response?.data?.message
+          : null;
+      alert(msg || "Không thể tạo yêu cầu chuyển nhượng");
+    } finally {
+      setTransferring(false);
     }
   };
 
@@ -131,27 +151,91 @@ export default function TicketDetailPage() {
                   )}
                 </div>
 
-                {/* Download PDF button */}
-                <button
-                  onClick={handleDownloadPdf}
-                  disabled={downloading}
-                  className="w-full mt-6 py-3 bg-primary text-white font-medium rounded-lg hover:bg-green-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                    />
-                  </svg>
-                  {downloading ? "Downloading..." : "Download PDF"}
-                </button>
+                {/* Action buttons */}
+                <div className="mt-6 flex flex-col gap-3">
+                  <button
+                    onClick={handleDownloadPdf}
+                    disabled={downloading}
+                    className="w-full py-3 bg-primary text-white font-medium rounded-lg hover:bg-green-600 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                      />
+                    </svg>
+                    {downloading ? "Downloading..." : "Download PDF"}
+                  </button>
+
+                  {ticket.status === "ISSUED" && (
+                    <button
+                      onClick={() => setShowTransferModal(true)}
+                      className="w-full py-3 bg-zinc-700 hover:bg-zinc-600 text-white font-medium rounded-lg transition flex items-center justify-center gap-2"
+                    >
+                      ↗ Chuyển nhượng vé
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ) : null}
         </main>
       </div>
+
+      {/* Transfer Modal */}
+      {showTransferModal && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-zinc-800 border border-zinc-700 rounded-xl w-full max-w-md p-6">
+            {transferSuccess ? (
+              <div className="text-center">
+                <div className="text-green-400 text-4xl mb-3">✓</div>
+                <h3 className="text-white font-semibold text-lg mb-2">Yêu cầu đã được gửi!</h3>
+                <p className="text-gray-400 text-sm mb-6">
+                  Người nhận có <strong className="text-white">48 giờ</strong> để chấp nhận chuyển nhượng bằng cách truy cập link được chia sẻ.
+                </p>
+                <button
+                  onClick={() => { setShowTransferModal(false); setTransferSuccess(false); setTransferEmail(""); }}
+                  className="px-6 py-2 bg-primary text-white rounded-lg hover:bg-green-600 transition"
+                >
+                  Đóng
+                </button>
+              </div>
+            ) : (
+              <>
+                <h3 className="text-white font-semibold text-lg mb-1">Chuyển nhượng vé</h3>
+                <p className="text-gray-400 text-sm mb-4">
+                  Vé <span className="text-primary font-mono">{ticket?.ticketCode}</span> sẽ được chuyển cho người nhận sau khi họ xác nhận.
+                </p>
+                <label className="block text-gray-300 text-sm mb-1">Email người nhận</label>
+                <input
+                  type="email"
+                  value={transferEmail}
+                  onChange={(e) => setTransferEmail(e.target.value)}
+                  placeholder="email@example.com"
+                  className="w-full bg-zinc-700 border border-zinc-600 rounded-lg px-3 py-2 text-white text-sm placeholder-gray-400 focus:outline-none focus:border-primary mb-4"
+                />
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => { setShowTransferModal(false); setTransferEmail(""); }}
+                    className="flex-1 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg text-sm transition"
+                  >
+                    Hủy
+                  </button>
+                  <button
+                    onClick={handleTransfer}
+                    disabled={transferring || !transferEmail.trim()}
+                    className="flex-1 py-2 bg-primary hover:bg-green-600 text-white rounded-lg text-sm font-medium transition disabled:opacity-50"
+                  >
+                    {transferring ? "Đang gửi..." : "Xác nhận chuyển"}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </ProtectedRoute>
   );
 }

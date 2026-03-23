@@ -6,7 +6,9 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Pagination from "@/components/Pagination";
+import { useRouter } from "next/navigation";
 import { dashboardService } from "@/lib/dashboard-service";
+import { eventService } from "@/lib/event-service";
 import { EventStatsResponse, AttendeeResponse } from "@/types/dashboard";
 import { PageResponse } from "@/types/event";
 
@@ -46,9 +48,11 @@ export default function EventStatsPage() {
 
 function EventStatsContent() {
   const params = useParams();
+  const router = useRouter();
   const eventId = Number(params.id);
 
   const [stats, setStats] = useState<EventStatsResponse | null>(null);
+  const [duplicating, setDuplicating] = useState(false);
   const [attendees, setAttendees] = useState<PageResponse<AttendeeResponse> | null>(null);
   const [loading, setLoading] = useState(true);
   const [attendeesLoading, setAttendeesLoading] = useState(false);
@@ -98,6 +102,19 @@ function EventStatsContent() {
     setSearch(searchInput);
   };
 
+  const handleDuplicate = async () => {
+    if (!confirm("Nhân bản sự kiện này? Bản sao sẽ được tạo ở trạng thái Nháp.")) return;
+    setDuplicating(true);
+    try {
+      const copy = await eventService.duplicateEvent(eventId);
+      router.push(`/organizer/dashboard/events/${copy.id}`);
+    } catch {
+      alert("Không thể nhân bản sự kiện");
+    } finally {
+      setDuplicating(false);
+    }
+  };
+
   if (loading) {
     return <div className="text-center text-gray-400 py-12">Đang tải...</div>;
   }
@@ -112,10 +129,19 @@ function EventStatsContent() {
 
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
-      {/* Back link */}
-      <Link href="/organizer/dashboard" className="text-gray-400 hover:text-white text-sm mb-4 inline-block">
-        &larr; Quay lại Dashboard
-      </Link>
+      {/* Back link + actions */}
+      <div className="flex items-center justify-between mb-4">
+        <Link href="/organizer/dashboard" className="text-gray-400 hover:text-white text-sm">
+          &larr; Quay lại Dashboard
+        </Link>
+        <button
+          onClick={handleDuplicate}
+          disabled={duplicating}
+          className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-sm rounded-lg transition disabled:opacity-50"
+        >
+          {duplicating ? "Đang nhân bản..." : "⧉ Nhân bản sự kiện"}
+        </button>
+      </div>
 
       {/* Event Header */}
       <div className="bg-zinc-800 rounded-lg border border-zinc-700 p-6 mb-6">

@@ -45,6 +45,11 @@ export const eventService = {
     await api.delete(`/v1/events/${id}`);
   },
 
+  async duplicateEvent(id: number): Promise<Event> {
+    const res = await api.post<ApiResponse<Event>>(`/v1/events/${id}/duplicate`);
+    return res.data.data;
+  },
+
   async getMyEvents(
     page: number = 0,
     size: number = 10

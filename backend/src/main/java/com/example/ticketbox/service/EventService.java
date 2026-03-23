@@ -204,6 +204,44 @@ public class EventService {
                 .map(this::toEventResponse);
     }
 
+    @Transactional
+    public EventResponse duplicateEvent(Long eventId, Long userId, boolean isAdmin) {
+        Event original = eventRepository.findById(eventId)
+                .orElseThrow(() -> new ResourceNotFoundException("Event", eventId));
+
+        if (!isAdmin && !original.getOrganizer().getId().equals(userId)) {
+            throw new BadRequestException("You are not the owner of this event");
+        }
+
+        Event copy = Event.builder()
+                .title("Copy of " + original.getTitle())
+                .description(original.getDescription())
+                .eventDate(original.getEventDate())
+                .endDate(original.getEndDate())
+                .location(original.getLocation())
+                .imageUrl(original.getImageUrl())
+                .category(original.getCategory())
+                .tags(new HashSet<>(original.getTags()))
+                .isFeatured(false)
+                .organizer(original.getOrganizer())
+                .build();
+
+        List<TicketType> copiedTypes = new ArrayList<>();
+        for (TicketType tt : original.getTicketTypes()) {
+            copiedTypes.add(TicketType.builder()
+                    .name(tt.getName())
+                    .price(tt.getPrice())
+                    .capacity(tt.getCapacity())
+                    .event(copy)
+                    .build());
+        }
+        copy.setTicketTypes(copiedTypes);
+        tagService.incrementUsageCounts(original.getTags());
+
+        Event saved = eventRepository.save(copy);
+        return toEventResponse(saved);
+    }
+
     // === Private helpers ===
 
     private void validateStatusTransition(EventStatus current, EventStatus target) {

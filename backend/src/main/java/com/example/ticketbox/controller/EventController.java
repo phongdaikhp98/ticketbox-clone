@@ -85,6 +85,17 @@ public class EventController {
         return ResponseEntity.ok(ApiResponse.success(event));
     }
 
+    @PostMapping("/{id}/duplicate")
+    @PreAuthorize("hasRole('ORGANIZER') or hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<EventResponse>> duplicateEvent(
+            @PathVariable Long id,
+            @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        EventResponse event = eventService.duplicateEvent(id, userDetails.getId(), isAdmin);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.created(event));
+    }
+
     @GetMapping("/my-events")
     @PreAuthorize("hasRole('ORGANIZER') or hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<Page<EventResponse>>> getMyEvents(

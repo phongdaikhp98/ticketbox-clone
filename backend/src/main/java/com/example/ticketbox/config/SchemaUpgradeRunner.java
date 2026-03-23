@@ -68,6 +68,27 @@ public class SchemaUpgradeRunner implements ApplicationRunner {
         // Feature: Featured Events order
         executeDDL("ALTER TABLE EVENTS ADD FEATURED_ORDER NUMBER(4) DEFAULT 999 NOT NULL",
                    "EVENTS.FEATURED_ORDER column added");
+
+        // Feature: Ticket Transfer
+        executeDDL("CREATE TABLE TICKET_TRANSFERS (" +
+                   "ID NUMBER NOT NULL, " +
+                   "TICKET_ID NUMBER NOT NULL, " +
+                   "FROM_USER_ID NUMBER NOT NULL, " +
+                   "TO_USER_ID NUMBER, " +
+                   "TO_EMAIL VARCHAR2(255) NOT NULL, " +
+                   "TRANSFER_TOKEN VARCHAR2(100) NOT NULL, " +
+                   "STATUS VARCHAR2(20) DEFAULT 'PENDING' NOT NULL, " +
+                   "EXPIRES_AT TIMESTAMP NOT NULL, " +
+                   "COMPLETED_AT TIMESTAMP, " +
+                   "CREATED_DATE TIMESTAMP NOT NULL, " +
+                   "CONSTRAINT PK_TICKET_TRANSFERS PRIMARY KEY (ID), " +
+                   "CONSTRAINT FK_TT_TICKET FOREIGN KEY (TICKET_ID) REFERENCES TICKETS(ID), " +
+                   "CONSTRAINT FK_TT_FROM_USER FOREIGN KEY (FROM_USER_ID) REFERENCES USERS(ID), " +
+                   "CONSTRAINT FK_TT_TO_USER FOREIGN KEY (TO_USER_ID) REFERENCES USERS(ID), " +
+                   "CONSTRAINT UQ_TT_TOKEN UNIQUE (TRANSFER_TOKEN))",
+                   "TICKET_TRANSFERS table");
+        executeDDL("CREATE SEQUENCE TICKET_TRANSFER_SEQ START WITH 1 INCREMENT BY 1 NOCACHE",
+                   "TICKET_TRANSFER_SEQ sequence");
     }
 
     private void executeDDL(String sql, String description) {
