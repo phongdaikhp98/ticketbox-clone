@@ -18,32 +18,18 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Duration;
-import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
 public class RateLimitFilter extends OncePerRequestFilter {
 
-    // Limits
-    private static final int AUTHENTICATED_LIMIT = 300;   // per user per minute
-    private static final int ANONYMOUS_LIMIT = 60;         // per IP per minute
-    private static final int SENSITIVE_LIMIT = 10;         // per IP per minute for sensitive endpoints
-
-    private static final Duration WINDOW = Duration.ofMinutes(1);
-
     private static final String KEY_USER = "RATE_LIMIT_USER:";
     private static final String KEY_IP = "RATE_LIMIT_IP:";
     private static final String KEY_SENSITIVE = "RATE_LIMIT_SENSITIVE:";
 
-    private static final Set<String> SENSITIVE_PATHS = Set.of(
-            "/v1/auth/login",
-            "/v1/auth/register",
-            "/v1/auth/forgot-password",
-            "/v1/auth/reset-password"
-    );
-
     private final StringRedisTemplate redisTemplate;
     private final JwtUtils jwtUtils;
+    private final AppProperties appProperties;
     private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @Override
@@ -53,10 +39,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
         String ip = getClientIp(request);
         String path = request.getRequestURI();
+        AppProperties.RateLimit cfg = appProperties.getRateLimit();
+        Duration window = Duration.ofMinutes(cfg.getWindowMinutes());
 
         // 1. Sensitive endpoint check (per IP, stricter limit)
-        if (SENSITIVE_PATHS.contains(path)) {
-            if (isRateLimited(KEY_SENSITIVE + ip, SENSITIVE_LIMIT, response, SENSITIVE_LIMIT)) {
+        if (cfg.getSensitivePaths().contains(path)) {
+            if (isRateLimited(KEY_SENSITIVE + ip, cfg.getSensitiveLimit(), window, response)) {
                 return;
             }
         }
@@ -65,12 +53,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
         String userEmail = extractEmailFromToken(request);
         if (userEmail != null) {
             // Authenticated: track by email, generous limit
-            if (isRateLimited(KEY_USER + userEmail, AUTHENTICATED_LIMIT, response, AUTHENTICATED_LIMIT)) {
+            if (isRateLimited(KEY_USER + userEmail, cfg.getAuthenticatedLimit(), window, response)) {
                 return;
             }
         } else {
             // Anonymous: track by IP, stricter limit
-            if (isRateLimited(KEY_IP + ip, ANONYMOUS_LIMIT, response, ANONYMOUS_LIMIT)) {
+            if (isRateLimited(KEY_IP + ip, cfg.getAnonymousLimit(), window, response)) {
                 return;
             }
         }
@@ -82,12 +70,12 @@ public class RateLimitFilter extends OncePerRequestFilter {
      * Increment counter for key and check against limit.
      * Sets remaining header and returns true if rate limited (should block).
      */
-    private boolean isRateLimited(String key, int limit, HttpServletResponse response, int headerLimit)
+    private boolean isRateLimited(String key, int limit, Duration window, HttpServletResponse response)
             throws IOException {
 
         Long count = redisTemplate.opsForValue().increment(key);
         if (count != null && count == 1) {
-            redisTemplate.expire(key, WINDOW);
+            redisTemplate.expire(key, window);
         }
 
         if (count != null && count > limit) {
@@ -100,8 +88,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
             return true;
         }
 
-        // Set headers based on most restrictive limit applied last
-        response.setHeader("X-RateLimit-Limit", String.valueOf(headerLimit));
+        response.setHeader("X-RateLimit-Limit", String.valueOf(limit));
         response.setHeader("X-RateLimit-Remaining",
                 String.valueOf(Math.max(0, limit - (count != null ? count : 0))));
         return false;
