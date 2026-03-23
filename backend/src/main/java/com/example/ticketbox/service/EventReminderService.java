@@ -1,5 +1,6 @@
 package com.example.ticketbox.service;
 
+import com.example.ticketbox.config.AppProperties;
 import com.example.ticketbox.model.ReminderLog;
 import com.example.ticketbox.model.Ticket;
 import com.example.ticketbox.repository.ReminderLogRepository;
@@ -21,13 +22,14 @@ public class EventReminderService {
     private final TicketRepository ticketRepository;
     private final ReminderLogRepository reminderLogRepository;
     private final EmailService emailService;
+    private final AppProperties appProperties;
 
-    @Scheduled(cron = "0 0 */23 * * *")
+    @Scheduled(cron = "${app.reminder.cron}")
     @Transactional
     public void sendEventReminders() {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime windowStart = now.plusHours(23);
-        LocalDateTime windowEnd = now.plusHours(25);
+        LocalDateTime windowStart = now.plusHours(appProperties.getReminder().getWindowStartHours());
+        LocalDateTime windowEnd = now.plusHours(appProperties.getReminder().getWindowEndHours());
 
         List<Ticket> tickets = ticketRepository.findIssuedTicketsForReminderWindow(windowStart, windowEnd);
         log.info("Event reminder job: found {} issued tickets in window [{} - {}]", tickets.size(), windowStart, windowEnd);

@@ -44,7 +44,7 @@ public class VNPayService {
         params.put("vnp_ReturnUrl", vnPayConfig.getReturnUrl());
         params.put("vnp_IpAddr", clientIp);
         params.put("vnp_CreateDate", now.format(VNPAY_DATE_FMT));
-        params.put("vnp_ExpireDate", now.plusMinutes(15).format(VNPAY_DATE_FMT));
+        params.put("vnp_ExpireDate", now.plusMinutes(vnPayConfig.getPaymentExpirationMinutes()).format(VNPAY_DATE_FMT));
 
         String queryString = params.entrySet().stream()
                 .map(e -> URLEncoder.encode(e.getKey(), StandardCharsets.UTF_8) + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
@@ -119,7 +119,7 @@ public class VNPayService {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             String jsonBody = objectMapper.writeValueAsString(body);
-            String refundApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
+            String refundApiUrl = vnPayConfig.getRefundApiUrl();
 
             String responseStr = RestClient.create()
                     .post()

@@ -1,5 +1,6 @@
 package com.example.ticketbox.service;
 
+import com.example.ticketbox.config.AppProperties;
 import com.example.ticketbox.dto.RefundResponse;
 import com.example.ticketbox.exception.BadRequestException;
 import com.example.ticketbox.exception.ResourceNotFoundException;
@@ -32,6 +33,7 @@ public class RefundService {
     private final TicketService ticketService;
     private final SeatReservationService seatReservationService;
     private final EmailService emailService;
+    private final AppProperties appProperties;
 
     @Transactional
     public RefundResponse requestRefund(Long userId, Long orderId, String clientIp) {
@@ -48,14 +50,15 @@ public class RefundService {
             throw new BadRequestException("Không tìm thấy thông tin giao dịch VNPay cho đơn hàng này");
         }
 
-        // Validate all events are > 24h away
-        LocalDateTime cutoff = LocalDateTime.now().plusHours(24);
+        // Validate all events are beyond the refund deadline
+        long deadlineHours = appProperties.getRefund().getDeadlineHours();
+        LocalDateTime cutoff = LocalDateTime.now().plusHours(deadlineHours);
         for (OrderItem item : order.getOrderItems()) {
             LocalDateTime eventDate = item.getEvent().getEventDate();
             if (eventDate != null && eventDate.isBefore(cutoff)) {
                 throw new BadRequestException(
                         "Không thể hoàn tiền: sự kiện '" + item.getEvent().getTitle()
-                                + "' bắt đầu trong vòng 24 giờ");
+                                + "' bắt đầu trong vòng " + deadlineHours + " giờ");
             }
         }
 

@@ -12,6 +12,8 @@ import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -32,7 +34,22 @@ class RateLimitFilterTest {
 
     @BeforeEach
     void setUp() {
-        rateLimitFilter = new RateLimitFilter(redisTemplate, jwtUtils);
+        AppProperties appProperties = new AppProperties();
+        // Use explicit config so tests are independent of default values
+        AppProperties.RateLimit rl = new AppProperties.RateLimit();
+        rl.setAuthenticatedLimit(300);
+        rl.setAnonymousLimit(60);
+        rl.setSensitiveLimit(10);
+        rl.setWindowMinutes(1);
+        rl.setSensitivePaths(List.of(
+                "/v1/auth/login",
+                "/v1/auth/register",
+                "/v1/auth/forgot-password",
+                "/v1/auth/reset-password"
+        ));
+        appProperties.setRateLimit(rl);
+
+        rateLimitFilter = new RateLimitFilter(redisTemplate, jwtUtils, appProperties);
         when(redisTemplate.opsForValue()).thenReturn(valueOperations);
     }
 

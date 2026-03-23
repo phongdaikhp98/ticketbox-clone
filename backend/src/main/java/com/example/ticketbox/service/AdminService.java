@@ -1,5 +1,6 @@
 package com.example.ticketbox.service;
 
+import com.example.ticketbox.config.AppProperties;
 import com.example.ticketbox.dto.AdminEventResponse;
 import com.example.ticketbox.dto.AdminOrderResponse;
 import com.example.ticketbox.dto.AdminOverviewResponse;
@@ -35,6 +36,7 @@ public class AdminService {
     private final TicketRepository ticketRepository;
     private final AuditLogService auditLogService;
     private final OrganizerApplicationService organizerApplicationService;
+    private final AppProperties appProperties;
 
     // ==================== Dashboard Overview ====================
 
@@ -46,9 +48,9 @@ public class AdminService {
         Long totalTicketsSold = ticketRepository.count();
         Long totalCheckedIn = ticketRepository.countByStatus(TicketStatus.USED);
 
-        // Recent 10 orders
         Page<Order> recentOrdersPage = orderRepository.findAll(
-                PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdDate")));
+                PageRequest.of(0, appProperties.getDashboard().getRecentOrdersSize(),
+                        Sort.by(Sort.Direction.DESC, "createdDate")));
 
         List<AdminOverviewResponse.RecentOrderDto> recentOrders = recentOrdersPage.getContent().stream()
                 .map(order -> {
@@ -66,9 +68,8 @@ public class AdminService {
                 })
                 .toList();
 
-        // Top 5 events by revenue
         List<Object[]> topEventsRaw = orderItemRepository.findTopEventsByRevenue(
-                PageRequest.of(0, 5));
+                PageRequest.of(0, appProperties.getDashboard().getTopEventsSize()));
         List<AdminOverviewResponse.TopEventDto> topEvents = topEventsRaw.stream()
                 .map(row -> AdminOverviewResponse.TopEventDto.builder()
                         .eventId((Long) row[0])

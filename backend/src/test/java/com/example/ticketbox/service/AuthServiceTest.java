@@ -1,5 +1,6 @@
 package com.example.ticketbox.service;
 
+import com.example.ticketbox.config.AppProperties;
 import com.example.ticketbox.dto.AuthResponse;
 import com.example.ticketbox.dto.LoginRequest;
 import com.example.ticketbox.dto.RefreshTokenRequest;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -45,6 +47,7 @@ class AuthServiceTest {
     @Mock private JwtUtils jwtUtils;
     @Mock private StringRedisTemplate redisTemplate;
     @Mock private EmailService emailService;
+    @Spy  private AppProperties appProperties = new AppProperties();
 
     @InjectMocks
     private AuthService authService;

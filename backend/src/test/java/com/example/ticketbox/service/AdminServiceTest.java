@@ -1,5 +1,6 @@
 package com.example.ticketbox.service;
 
+import com.example.ticketbox.config.AppProperties;
 import com.example.ticketbox.dto.AdminEventResponse;
 import com.example.ticketbox.dto.AdminOrderResponse;
 import com.example.ticketbox.dto.AdminUserResponse;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -49,6 +51,12 @@ class AdminServiceTest {
 
     @Mock
     private AuditLogService auditLogService;
+
+    @Mock
+    private OrganizerApplicationService organizerApplicationService;
+
+    @Spy
+    private AppProperties appProperties = new AppProperties();
 
     @InjectMocks
     private AdminService adminService;

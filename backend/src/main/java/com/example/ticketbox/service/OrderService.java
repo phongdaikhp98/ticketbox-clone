@@ -1,5 +1,6 @@
 package com.example.ticketbox.service;
 
+import com.example.ticketbox.config.AppProperties;
 import com.example.ticketbox.dto.CheckoutRequest;
 import com.example.ticketbox.dto.OrderResponse;
 import com.example.ticketbox.dto.PaymentUrlResponse;
@@ -47,6 +48,7 @@ public class OrderService {
     private final PromoCodeService promoCodeService;
     private final PromoCodeRepository promoCodeRepository;
     private final PromoCodeUsageRepository promoCodeUsageRepository;
+    private final AppProperties appProperties;
 
     @Transactional
     public OrderResponse checkout(Long userId, CheckoutRequest request) {
@@ -244,12 +246,14 @@ public class OrderService {
         if (order.getStatus() != OrderStatus.PENDING)
             throw new BadRequestException("Chỉ có thể hủy đơn hàng chưa thanh toán (PENDING)");
 
-        LocalDateTime cutoff = LocalDateTime.now().plusHours(24);
+        long deadlineHours = appProperties.getOrder().getCancellationDeadlineHours();
+        LocalDateTime cutoff = LocalDateTime.now().plusHours(deadlineHours);
         for (OrderItem item : order.getOrderItems()) {
             LocalDateTime eventDate = item.getEvent().getEventDate();
             if (eventDate != null && eventDate.isBefore(cutoff)) {
                 throw new BadRequestException(
-                        "Không thể hủy: sự kiện '" + item.getEvent().getTitle() + "' bắt đầu trong vòng 24 giờ");
+                        "Không thể hủy: sự kiện '" + item.getEvent().getTitle()
+                                + "' bắt đầu trong vòng " + deadlineHours + " giờ");
             }
         }
 

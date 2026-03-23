@@ -2,6 +2,7 @@ package com.example.ticketbox.service;
 
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import com.example.ticketbox.config.AppProperties;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -17,12 +18,12 @@ import java.util.Map;
 @Slf4j
 public class CloudinaryService {
 
-    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
     private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
             "image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"
     );
 
     private final Cloudinary cloudinary;
+    private final AppProperties appProperties;
 
     public String uploadImage(MultipartFile file, String folder) {
         validateFile(file);
@@ -47,8 +48,9 @@ public class CloudinaryService {
         if (file == null || file.isEmpty()) {
             throw new IllegalArgumentException("File không được để trống");
         }
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new IllegalArgumentException("File không được vượt quá 5MB");
+        long maxBytes = (long) appProperties.getUpload().getMaxFileSizeMb() * 1024 * 1024;
+        if (file.getSize() > maxBytes) {
+            throw new IllegalArgumentException("File không được vượt quá " + appProperties.getUpload().getMaxFileSizeMb() + "MB");
         }
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {

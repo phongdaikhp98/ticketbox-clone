@@ -1,5 +1,6 @@
 package com.example.ticketbox.service;
 
+import com.example.ticketbox.config.AppProperties;
 import com.example.ticketbox.dto.AttendeeResponse;
 import com.example.ticketbox.dto.DashboardOverviewResponse;
 import com.example.ticketbox.dto.EventStatsResponse;
@@ -28,6 +29,7 @@ public class DashboardService {
     private final TicketRepository ticketRepository;
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
+    private final AppProperties appProperties;
 
     public DashboardOverviewResponse getOverview(Long userId, boolean isAdmin) {
         Long organizerId = isAdmin ? null : userId;
@@ -44,14 +46,15 @@ public class DashboardService {
             totalTicketsSold = ticketRepository.count();
             totalCheckedIn = ticketRepository.countByStatus(TicketStatus.USED);
             recentOrders = orderRepository.findAll(
-                    PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdDate")));
+                    PageRequest.of(0, appProperties.getDashboard().getRecentOrdersSize(),
+                            Sort.by(Sort.Direction.DESC, "createdDate")));
         } else {
             totalEvents = eventRepository.countByOrganizerId(organizerId);
             totalRevenue = orderItemRepository.sumRevenueByOrganizerId(organizerId);
             totalTicketsSold = ticketRepository.countByOrganizerId(organizerId);
             totalCheckedIn = ticketRepository.countCheckedInByOrganizerId(organizerId);
             recentOrders = orderRepository.findRecentCompletedOrdersByOrganizerId(
-                    organizerId, PageRequest.of(0, 10));
+                    organizerId, PageRequest.of(0, appProperties.getDashboard().getRecentOrdersSize()));
         }
 
         List<DashboardOverviewResponse.RecentOrderDto> recentOrderDtos = recentOrders.getContent().stream()

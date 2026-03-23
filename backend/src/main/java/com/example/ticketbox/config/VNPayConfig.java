@@ -18,4 +18,8 @@ public class VNPayConfig {
     private String version = "2.1.0";
     private String command = "pay";
     private String orderType = "other";
+    /** Payment URL expiration in minutes (passed as vnp_ExpireDate). */
+    private int paymentExpirationMinutes = 15;
+    /** VNPay refund API endpoint. */
+    private String refundApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
 }

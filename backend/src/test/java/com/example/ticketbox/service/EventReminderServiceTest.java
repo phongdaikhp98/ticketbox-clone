@@ -1,5 +1,6 @@
 package com.example.ticketbox.service;
 
+import com.example.ticketbox.config.AppProperties;
 import com.example.ticketbox.model.*;
 import com.example.ticketbox.repository.ReminderLogRepository;
 import com.example.ticketbox.repository.TicketRepository;
@@ -9,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
@@ -25,6 +27,7 @@ class EventReminderServiceTest {
     @Mock private TicketRepository ticketRepository;
     @Mock private ReminderLogRepository reminderLogRepository;
     @Mock private EmailService emailService;
+    @Spy  private AppProperties appProperties = new AppProperties();
 
     @InjectMocks
     private EventReminderService eventReminderService;

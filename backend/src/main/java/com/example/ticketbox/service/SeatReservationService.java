@@ -1,5 +1,6 @@
 package com.example.ticketbox.service;
 
+import com.example.ticketbox.config.AppProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -14,8 +15,8 @@ import java.util.Set;
 public class SeatReservationService {
 
     private final StringRedisTemplate redisTemplate;
+    private final AppProperties appProperties;
 
-    private static final long RESERVATION_TTL_SECONDS = 600; // 10 minutes
     private static final String KEY_PREFIX = "seat:reservation:";
 
     private String key(Long seatId) {
@@ -28,7 +29,8 @@ public class SeatReservationService {
      */
     public boolean reserveSeat(Long seatId, Long userId) {
         Boolean result = redisTemplate.opsForValue()
-                .setIfAbsent(key(seatId), String.valueOf(userId), Duration.ofSeconds(RESERVATION_TTL_SECONDS));
+                .setIfAbsent(key(seatId), String.valueOf(userId),
+                        Duration.ofSeconds(appProperties.getSeat().getReservationTtlSeconds()));
         return Boolean.TRUE.equals(result);
     }
 

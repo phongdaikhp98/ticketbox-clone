@@ -1,5 +1,6 @@
 package com.example.ticketbox.service;
 
+import com.example.ticketbox.config.AppProperties;
 import com.example.ticketbox.dto.*;
 import com.example.ticketbox.exception.BadRequestException;
 import com.example.ticketbox.model.AuthProvider;
@@ -36,6 +37,7 @@ public class AuthService {
     private final JwtUtils jwtUtils;
     private final StringRedisTemplate redisTemplate;
     private final EmailService emailService;
+    private final AppProperties appProperties;
 
     @Value("${app.mail.frontend-url}")
     private String frontendUrl;
@@ -44,7 +46,6 @@ public class AuthService {
     private String googleClientId;
 
     private static final String PWD_RESET_PREFIX = "pwd_reset:";
-    private static final long PWD_RESET_TTL_MINUTES = 15;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -124,7 +125,8 @@ public class AuthService {
         }
 
         String token = UUID.randomUUID().toString();
-        redisTemplate.opsForValue().set(PWD_RESET_PREFIX + token, email, Duration.ofMinutes(PWD_RESET_TTL_MINUTES));
+        redisTemplate.opsForValue().set(PWD_RESET_PREFIX + token, email,
+                Duration.ofMinutes(appProperties.getAuth().getPasswordResetTtlMinutes()));
 
         String resetUrl = frontendUrl + "/reset-password?token=" + token;
         emailService.sendPasswordResetEmail(email, user.getFullName(), resetUrl);

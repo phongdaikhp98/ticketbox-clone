@@ -66,6 +66,8 @@ app:
     hash-secret: ${VNPAY_HASH_SECRET}
     payment-url: https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
     return-url: ${VNPAY_RETURN_URL:http://localhost:3000/payment/vnpay-return}
+    payment-expiration-minutes: 15
+    refund-api-url: https://sandbox.vnpayment.vn/merchant_webapi/api/transaction
 
   mail:
     from: ${MAIL_FROM:onboarding@resend.dev}
@@ -80,3 +82,38 @@ app:
 
   google:
     client-id: ${GOOGLE_CLIENT_ID:}
+
+  rate-limit:
+    authenticated-limit: 300
+    anonymous-limit: 60
+    sensitive-limit: 10
+    window-minutes: 1
+    sensitive-paths:
+      - /v1/auth/login
+      - /v1/auth/register
+      - /v1/auth/forgot-password
+      - /v1/auth/reset-password
+
+  upload:
+    max-file-size-mb: 5
+
+  auth:
+    password-reset-ttl-minutes: 15
+
+  seat:
+    reservation-ttl-seconds: 600
+
+  reminder:
+    cron: "0 0 */23 * * *"
+    window-start-hours: 23
+    window-end-hours: 25
+
+  order:
+    cancellation-deadline-hours: 24
+
+  refund:
+    deadline-hours: 24
+
+  dashboard:
+    recent-orders-size: 10
+    top-events-size: 5
