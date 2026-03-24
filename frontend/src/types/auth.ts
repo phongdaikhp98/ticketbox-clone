@@ -43,3 +43,9 @@ export interface UpdateProfileRequest {
   address?: string;
   avatarUrl?: string;
 }
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

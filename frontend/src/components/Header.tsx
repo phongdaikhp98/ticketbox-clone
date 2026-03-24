@@ -153,6 +153,13 @@ export default function Header() {
                         🎭 Quản lý sự kiện
                       </Link>
                       <Link
+                        href="/admin/categories"
+                        className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-600 text-sm transition"
+                        onClick={() => setAdminDropdownOpen(false)}
+                      >
+                        🗂️ Danh mục
+                      </Link>
+                      <Link
                         href="/admin/organizer-applications"
                         className="block px-4 py-2 text-gray-300 hover:text-white hover:bg-zinc-600 text-sm transition"
                         onClick={() => setAdminDropdownOpen(false)}

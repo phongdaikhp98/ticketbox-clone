@@ -1,11 +1,15 @@
 package com.example.ticketbox.service;
 
 import com.example.ticketbox.dto.AuthResponse;
+import com.example.ticketbox.dto.ChangePasswordRequest;
 import com.example.ticketbox.dto.UpdateProfileRequest;
+import com.example.ticketbox.exception.BadRequestException;
 import com.example.ticketbox.exception.ResourceNotFoundException;
+import com.example.ticketbox.model.AuthProvider;
 import com.example.ticketbox.model.User;
 import com.example.ticketbox.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional
     public AuthResponse.UserDto updateProfile(String email, UpdateProfileRequest request) {
@@ -45,5 +50,26 @@ public class UserService {
                 .role(user.getRole().name())
                 .emailVerified(user.getEmailVerified())
                 .build();
+    }
+
+    @Transactional
+    public void changePassword(String email, ChangePasswordRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getProvider() != AuthProvider.LOCAL) {
+            throw new BadRequestException("Password change is not available for social login accounts");
+        }
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new BadRequestException("Current password is incorrect");
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new BadRequestException("New password and confirm password do not match");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 }

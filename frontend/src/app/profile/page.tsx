@@ -7,7 +7,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageUpload from "@/components/ImageUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { userService } from "@/lib/user-service";
-import { UpdateProfileRequest } from "@/types/auth";
+import { ChangePasswordRequest, UpdateProfileRequest } from "@/types/auth";
 
 export default function ProfilePage() {
   return (
@@ -63,12 +63,12 @@ function ProfileForm() {
   return (
     <main className="max-w-2xl mx-auto px-4 py-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">Edit Profile</h2>
+        <h2 className="text-2xl font-bold text-white">Chỉnh sửa hồ sơ</h2>
         <button
           onClick={() => router.push("/")}
           className="text-gray-400 hover:text-white text-sm transition"
         >
-          Back to Dashboard
+          ← Về trang chủ
         </button>
       </div>
 
@@ -143,11 +143,132 @@ function ProfileForm() {
               disabled={loading}
               className="w-full py-2 bg-primary text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50"
             >
-              {loading ? "Saving..." : "Save Changes"}
+              {loading ? "Đang lưu..." : "Lưu thay đổi"}
             </button>
           </div>
         </form>
       </div>
+
+      {/* Change Password — chỉ hiện với tài khoản đăng ký email */}
+      {user.role !== "OAUTH2" && <ChangePasswordSection />}
     </main>
+  );
+}
+
+function ChangePasswordSection() {
+  const [form, setForm] = useState<ChangePasswordRequest>({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [showForm, setShowForm] = useState(false);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    setError("");
+    setSuccess("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (form.newPassword !== form.confirmPassword) {
+      setError("Mật khẩu mới và xác nhận không khớp");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    setSuccess("");
+    try {
+      await userService.changePassword(form);
+      setSuccess("Đổi mật khẩu thành công!");
+      setForm({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setShowForm(false);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      setError(e.response?.data?.message || "Đổi mật khẩu thất bại");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-zinc-800 rounded-lg p-6 mt-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-white font-semibold">Đổi mật khẩu</h3>
+          <p className="text-gray-400 text-sm mt-0.5">Cập nhật mật khẩu đăng nhập của bạn</p>
+        </div>
+        <button
+          onClick={() => { setShowForm((v) => !v); setError(""); setSuccess(""); }}
+          className="text-sm px-4 py-1.5 rounded-lg bg-zinc-700 text-gray-300 hover:bg-zinc-600 transition"
+        >
+          {showForm ? "Hủy" : "Thay đổi"}
+        </button>
+      </div>
+
+      {success && !showForm && (
+        <div className="mt-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm">
+          {success}
+        </div>
+      )}
+
+      {showForm && (
+        <form onSubmit={handleSubmit} className="mt-5 space-y-4">
+          {error && (
+            <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <label className="block text-gray-400 text-sm mb-1">Mật khẩu hiện tại</label>
+            <input
+              type="password"
+              name="currentPassword"
+              value={form.currentPassword}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white focus:outline-none focus:border-primary"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-400 text-sm mb-1">Mật khẩu mới</label>
+            <input
+              type="password"
+              name="newPassword"
+              value={form.newPassword}
+              onChange={handleChange}
+              required
+              minLength={6}
+              className="w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white focus:outline-none focus:border-primary"
+            />
+          </div>
+
+          <div>
+            <label className="block text-gray-400 text-sm mb-1">Xác nhận mật khẩu mới</label>
+            <input
+              type="password"
+              name="confirmPassword"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              required
+              className="w-full px-4 py-2 bg-zinc-700 border border-zinc-600 rounded-lg text-white focus:outline-none focus:border-primary"
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-2 bg-primary text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50"
+          >
+            {loading ? "Đang lưu..." : "Xác nhận đổi mật khẩu"}
+          </button>
+        </form>
+      )}
+    </div>
   );
 }
