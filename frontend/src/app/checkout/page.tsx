@@ -283,7 +283,7 @@ export default function CheckoutPage() {
                             <div className="w-2.5 h-2.5 rounded-full bg-primary" />
                           )}
                         </div>
-                        <span className={`w-16 text-center text-xs font-bold text-white rounded px-2 py-0.5 ${option.badge.color}`}>
+                        <span className={`min-w-[4rem] text-center text-xs font-bold text-white rounded px-2 py-0.5 shrink-0 ${option.badge.color}`}>
                           {option.badge.text}
                         </span>
                         <div>

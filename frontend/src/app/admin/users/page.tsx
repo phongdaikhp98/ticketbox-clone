@@ -107,14 +107,14 @@ export default function AdminUsersPage() {
       <div className="min-h-screen bg-secondary">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-white">Quản lý người dùng</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Quản lý người dùng</h1>
               <p className="text-gray-400 mt-1">
                 {data ? `${data.totalElements.toLocaleString("vi-VN")} người dùng` : ""}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 shrink-0">
               <button
                 onClick={async () => {
                   setExportLoading(true);
@@ -127,15 +127,15 @@ export default function AdminUsersPage() {
               >
                 {exportLoading ? "Đang xuất..." : "⬇ Xuất Excel"}
               </button>
-              <Link href="/" className="text-gray-400 hover:text-white text-sm transition">
-                ← Quay lại trang chủ
+              <Link href="/" className="text-gray-400 hover:text-white text-sm transition whitespace-nowrap">
+                ← Trang chủ
               </Link>
             </div>
           </div>
 
           {/* Filters */}
           <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4 mb-6 flex flex-wrap gap-3">
-            <div className="flex gap-2 flex-1 min-w-64">
+            <div className="flex gap-2 flex-1 min-w-0 w-full sm:w-auto">
               <input
                 type="text"
                 placeholder="Tìm kiếm theo tên hoặc email..."
@@ -185,12 +185,12 @@ export default function AdminUsersPage() {
               <table className="w-full">
                 <thead className="border-b border-zinc-700">
                   <tr>
-                    <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">ID</th>
+                    <th className="hidden sm:table-cell text-left text-gray-400 text-xs font-medium px-4 py-3">ID</th>
                     <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Họ tên</th>
-                    <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Email</th>
+                    <th className="hidden md:table-cell text-left text-gray-400 text-xs font-medium px-4 py-3">Email</th>
                     <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Vai trò</th>
                     <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Trạng thái</th>
-                    <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Ngày tạo</th>
+                    <th className="hidden lg:table-cell text-left text-gray-400 text-xs font-medium px-4 py-3">Ngày tạo</th>
                     <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Hành động</th>
                   </tr>
                 </thead>
@@ -215,14 +215,15 @@ export default function AdminUsersPage() {
                         key={user.id}
                         className="border-b border-zinc-700 last:border-0 hover:bg-zinc-750 transition"
                       >
-                        <td className="px-4 py-3 text-gray-400 text-sm">{user.id}</td>
+                        <td className="hidden sm:table-cell px-4 py-3 text-gray-400 text-sm">{user.id}</td>
                         <td className="px-4 py-3">
                           <p className="text-white text-sm font-medium">{user.fullName}</p>
+                          <p className="text-gray-400 text-xs md:hidden truncate max-w-[140px]">{user.email}</p>
                           {user.phone && (
                             <p className="text-gray-400 text-xs">{user.phone}</p>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-gray-300 text-sm">{user.email}</td>
+                        <td className="hidden md:table-cell px-4 py-3 text-gray-300 text-sm max-w-[180px] truncate">{user.email}</td>
                         <td className="px-4 py-3">
                           <span
                             className={`text-xs px-2 py-1 rounded-full font-medium ${
@@ -243,7 +244,7 @@ export default function AdminUsersPage() {
                             {user.isActive ? "Hoạt động" : "Đã khóa"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-400 text-sm">
+                        <td className="hidden lg:table-cell px-4 py-3 text-gray-400 text-sm">
                           {formatDate(user.createdDate)}
                         </td>
                         <td className="px-4 py-3">

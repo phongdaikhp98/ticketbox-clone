@@ -74,7 +74,7 @@ function ProfileForm() {
 
       <div className="bg-zinc-800 rounded-lg p-6">
         {/* Avatar display + upload */}
-        <div className="flex items-center gap-5 mb-6 pb-6 border-b border-zinc-700">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 pb-6 border-b border-zinc-700">
           <ImageUpload
             folder="avatars"
             aspectRatio="square"

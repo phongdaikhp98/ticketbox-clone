@@ -144,14 +144,14 @@ export default function AdminEventsPage() {
       <div className="min-h-screen bg-secondary">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-white">Quản lý sự kiện</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Quản lý sự kiện</h1>
               <p className="text-gray-400 mt-1">
                 {data ? `${data.totalElements.toLocaleString("vi-VN")} sự kiện` : ""}
               </p>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 shrink-0">
               <button
                 onClick={handleExport}
                 disabled={exportLoading}
@@ -159,18 +159,15 @@ export default function AdminEventsPage() {
               >
                 {exportLoading ? "Đang xuất..." : "⬇ Xuất Excel"}
               </button>
-              <Link
-                href="/"
-                className="text-gray-400 hover:text-white text-sm transition flex items-center gap-2"
-              >
-                ← Quay lại trang chủ
+              <Link href="/" className="text-gray-400 hover:text-white text-sm transition whitespace-nowrap">
+                ← Trang chủ
               </Link>
             </div>
           </div>
 
           {/* Filters */}
           <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4 mb-6 flex flex-wrap gap-3">
-            <div className="flex gap-2 flex-1 min-w-64">
+            <div className="flex gap-2 flex-1 min-w-0 w-full sm:w-auto">
               <input
                 type="text"
                 placeholder="Tìm kiếm theo tên sự kiện..."
@@ -221,14 +218,14 @@ export default function AdminEventsPage() {
               <table className="w-full">
                 <thead className="border-b border-zinc-700">
                   <tr>
-                    <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">ID</th>
+                    <th className="hidden sm:table-cell text-left text-gray-400 text-xs font-medium px-4 py-3">ID</th>
                     <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Tên sự kiện</th>
-                    <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Người tổ chức</th>
-                    <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Danh mục</th>
+                    <th className="hidden lg:table-cell text-left text-gray-400 text-xs font-medium px-4 py-3">Người tổ chức</th>
+                    <th className="hidden lg:table-cell text-left text-gray-400 text-xs font-medium px-4 py-3">Danh mục</th>
                     <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Trạng thái</th>
                     <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Nổi bật</th>
-                    <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Vé</th>
-                    <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Ngày diễn</th>
+                    <th className="hidden md:table-cell text-left text-gray-400 text-xs font-medium px-4 py-3">Vé</th>
+                    <th className="hidden md:table-cell text-left text-gray-400 text-xs font-medium px-4 py-3">Ngày diễn</th>
                     <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Hành động</th>
                   </tr>
                 </thead>
@@ -253,14 +250,15 @@ export default function AdminEventsPage() {
                         key={event.id}
                         className="border-b border-zinc-700 last:border-0 hover:bg-zinc-750 transition"
                       >
-                        <td className="px-4 py-3 text-gray-400 text-sm">{event.id}</td>
-                        <td className="px-4 py-3 max-w-48">
+                        <td className="hidden sm:table-cell px-4 py-3 text-gray-400 text-sm">{event.id}</td>
+                        <td className="px-4 py-3 max-w-[160px] sm:max-w-48">
                           <p className="text-white text-sm font-medium truncate">{event.title}</p>
+                          <p className="text-gray-500 text-xs lg:hidden truncate">{event.organizerName}</p>
                         </td>
-                        <td className="px-4 py-3 text-gray-300 text-sm max-w-36 truncate">
+                        <td className="hidden lg:table-cell px-4 py-3 text-gray-300 text-sm max-w-36 truncate">
                           {event.organizerName}
                         </td>
-                        <td className="px-4 py-3 text-gray-400 text-sm">
+                        <td className="hidden lg:table-cell px-4 py-3 text-gray-400 text-sm">
                           {event.category || "—"}
                         </td>
                         <td className="px-4 py-3">
@@ -311,10 +309,10 @@ export default function AdminEventsPage() {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-3 text-gray-400 text-sm whitespace-nowrap">
+                        <td className="hidden md:table-cell px-4 py-3 text-gray-400 text-sm whitespace-nowrap">
                           {event.totalSold}/{event.totalCapacity}
                         </td>
-                        <td className="px-4 py-3 text-gray-400 text-sm whitespace-nowrap">
+                        <td className="hidden md:table-cell px-4 py-3 text-gray-400 text-sm whitespace-nowrap">
                           {formatDate(event.eventDate)}
                         </td>
                         <td className="px-4 py-3">

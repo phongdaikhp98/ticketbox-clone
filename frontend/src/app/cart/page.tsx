@@ -137,82 +137,79 @@ export default function CartPage() {
               {cart.items.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-zinc-800 rounded-lg p-4 flex items-center gap-4"
+                  className="bg-zinc-800 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4"
                 >
-                  <Link href={`/events/${item.event.id}`} className="shrink-0">
-                    {item.event.imageUrl ? (
-                      <img
-                        src={item.event.imageUrl}
-                        alt={item.event.title}
-                        className="w-20 h-20 object-cover rounded"
-                      />
-                    ) : (
-                      <div className="w-20 h-20 bg-zinc-700 rounded flex items-center justify-center text-gray-500 text-xs">
-                        No Image
+                  {/* Ảnh + thông tin */}
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <Link href={`/events/${item.event.id}`} className="shrink-0">
+                      {item.event.imageUrl ? (
+                        <img
+                          src={item.event.imageUrl}
+                          alt={item.event.title}
+                          className="w-16 h-16 sm:w-20 sm:h-20 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 bg-zinc-700 rounded flex items-center justify-center text-gray-500 text-xs">
+                          No Image
+                        </div>
+                      )}
+                    </Link>
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        href={`/events/${item.event.id}`}
+                        className="text-white font-medium hover:text-primary transition block truncate"
+                      >
+                        {item.event.title}
+                      </Link>
+                      <p className="text-gray-400 text-sm">{item.ticketType.name}</p>
+                      {item.seatCode && (
+                        <p className="text-blue-400 text-xs font-medium">Ghế: {item.seatCode}</p>
+                      )}
+                      <p className="text-gray-500 text-xs">
+                        {formatDate(item.event.eventDate)} · {item.event.location}
+                      </p>
+                      <p className="text-primary text-sm font-medium mt-1">
+                        {formatPrice(item.ticketType.price)}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Số lượng + tổng + xóa */}
+                  <div className="flex items-center justify-between sm:justify-end gap-3 sm:shrink-0">
+                    {!item.seatCode && (
+                      <div className="flex items-center border border-zinc-600 rounded">
+                        <button
+                          onClick={() => handleUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
+                          disabled={updatingId === item.id || item.quantity <= 1}
+                          className="px-3 py-1.5 text-gray-400 hover:text-white transition disabled:opacity-50"
+                        >
+                          −
+                        </button>
+                        <span className="px-3 py-1.5 text-white text-sm min-w-[2rem] text-center">
+                          {item.quantity}
+                        </span>
+                        <button
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                          disabled={updatingId === item.id || item.quantity >= item.ticketType.availableCount}
+                          className="px-3 py-1.5 text-gray-400 hover:text-white transition disabled:opacity-50"
+                        >
+                          +
+                        </button>
                       </div>
                     )}
-                  </Link>
-                  <div className="flex-1 min-w-0">
-                    <Link
-                      href={`/events/${item.event.id}`}
-                      className="text-white font-medium hover:text-primary transition block truncate"
-                    >
-                      {item.event.title}
-                    </Link>
-                    <p className="text-gray-400 text-sm">{item.ticketType.name}</p>
-                    {item.seatCode && (
-                      <p className="text-blue-400 text-xs font-medium">Ghế: {item.seatCode}</p>
-                    )}
-                    <p className="text-gray-500 text-xs">
-                      {formatDate(item.event.eventDate)} - {item.event.location}
-                    </p>
-                    <p className="text-primary text-sm font-medium mt-1">
-                      {formatPrice(item.ticketType.price)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {!item.seatCode && (
-                    <div className="flex items-center border border-zinc-600 rounded">
-                      <button
-                        onClick={() =>
-                          handleUpdateQuantity(item.id, Math.max(1, item.quantity - 1))
-                        }
-                        disabled={updatingId === item.id || item.quantity <= 1}
-                        className="px-2 py-1 text-gray-400 hover:text-white transition disabled:opacity-50"
-                      >
-                        -
-                      </button>
-                      <span className="px-3 py-1 text-white text-sm">
-                        {item.quantity}
-                      </span>
-                      <button
-                        onClick={() =>
-                          handleUpdateQuantity(item.id, item.quantity + 1)
-                        }
-                        disabled={
-                          updatingId === item.id ||
-                          item.quantity >= item.ticketType.availableCount
-                        }
-                        className="px-2 py-1 text-gray-400 hover:text-white transition disabled:opacity-50"
-                      >
-                        +
-                      </button>
-                    </div>
-                    )}
-                    <p className="text-white font-semibold min-w-[100px] text-right">
+                    <p className="text-white font-semibold text-right whitespace-nowrap">
                       {formatPrice(item.ticketType.price * item.quantity)}
                     </p>
                     <button
                       onClick={() => handleRemoveItem(item.id)}
                       disabled={updatingId === item.id}
-                      className="text-gray-400 hover:text-red-400 transition p-1"
-                      title="Remove"
+                      className="text-gray-400 hover:text-red-400 transition p-1.5"
+                      title="Xóa"
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                       </svg>
                     </button>
-                    <span className="sr-only">Xóa</span>
                   </div>
                 </div>
               ))}

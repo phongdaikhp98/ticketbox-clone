@@ -274,16 +274,19 @@ export default function EventDetailPage() {
                 {event.ticketTypes.map((tt) => (
                   <div
                     key={tt.id}
-                    className="flex items-center justify-between p-4 bg-zinc-700 rounded-lg"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 bg-zinc-700 rounded-lg"
                   >
-                    <div>
+                    <div className="min-w-0">
                       <p className="text-white font-medium">{tt.name}</p>
                       <p className="text-gray-400 text-sm">
                         {tt.availableCount} / {tt.capacity} available
                       </p>
+                      <p className="text-primary font-semibold mt-0.5 sm:hidden">
+                        {tt.price > 0 ? formatPrice(tt.price) : "Free"}
+                      </p>
                     </div>
-                    <div className="text-right flex items-center gap-3">
-                      <p className="text-primary font-semibold">
+                    <div className="flex items-center justify-between sm:justify-end gap-3 sm:shrink-0">
+                      <p className="hidden sm:block text-primary font-semibold whitespace-nowrap">
                         {tt.price > 0 ? formatPrice(tt.price) : "Free"}
                       </p>
                       {tt.availableCount > 0 ? (
@@ -293,18 +296,18 @@ export default function EventDetailPage() {
                               onClick={() =>
                                 handleQuantityChange(tt.id, (quantities[tt.id] || 1) - 1, tt.availableCount)
                               }
-                              className="px-2 py-1 text-gray-400 hover:text-white transition"
+                              className="px-3 py-1.5 text-gray-400 hover:text-white transition"
                             >
-                              -
+                              −
                             </button>
-                            <span className="px-2 py-1 text-white text-sm min-w-[2rem] text-center">
+                            <span className="px-3 py-1.5 text-white text-sm min-w-[2rem] text-center">
                               {quantities[tt.id] || 1}
                             </span>
                             <button
                               onClick={() =>
                                 handleQuantityChange(tt.id, (quantities[tt.id] || 1) + 1, tt.availableCount)
                               }
-                              className="px-2 py-1 text-gray-400 hover:text-white transition"
+                              className="px-3 py-1.5 text-gray-400 hover:text-white transition"
                             >
                               +
                             </button>
@@ -312,20 +315,20 @@ export default function EventDetailPage() {
                           <button
                             onClick={() => handleAddToCart(tt.id)}
                             disabled={addingToCart === tt.id}
-                            className="px-4 py-1.5 bg-primary text-white text-sm rounded hover:bg-green-600 transition disabled:opacity-50"
+                            className="px-4 py-2 bg-primary text-white text-sm rounded hover:bg-green-600 transition disabled:opacity-50 whitespace-nowrap"
                           >
-                            {addingToCart === tt.id ? "..." : "Add to Cart"}
+                            {addingToCart === tt.id ? "..." : "Thêm vào giỏ"}
                           </button>
                         </div>
                       ) : (
-                        <span className="px-4 py-1.5 bg-zinc-600 text-gray-400 text-sm rounded">
-                          Sold Out
+                        <span className="px-4 py-2 bg-zinc-600 text-gray-400 text-sm rounded whitespace-nowrap">
+                          Hết vé
                         </span>
                       )}
                     </div>
                     {cartMessage[tt.id] && (
                       <p
-                        className={`text-xs mt-1 ${
+                        className={`text-xs ${
                           cartMessage[tt.id] === "Added to cart!"
                             ? "text-green-400"
                             : "text-red-400"
