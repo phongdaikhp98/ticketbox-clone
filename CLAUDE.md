@@ -46,7 +46,7 @@ Tìm kiếm: ?search=Bob
 Viết unit test với JUnit 5 + Mockito
 Test coverage tối thiểu cho Service layer
 Dùng @SpringBootTest cho integration test
-Hiện tại tỉ lệ unit test đang rất thấp
+
 # What Claude Should Do
 - Luôn hỏi clarify nếu yêu cầu chưa rõ trước khi viết code
 - Ưu tiên sửa đúng layer (không bypass Service để gọi thẳng Repository từ Controller)
