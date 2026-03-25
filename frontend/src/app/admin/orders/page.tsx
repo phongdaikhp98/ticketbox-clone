@@ -79,9 +79,9 @@ export default function AdminOrdersPage() {
       <div className="min-h-screen bg-secondary">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-white">Quản lý đơn hàng</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Quản lý đơn hàng</h1>
               <p className="text-gray-400 mt-1">
                 {data ? `${data.totalElements.toLocaleString("vi-VN")} đơn hàng` : ""}
               </p>
@@ -107,7 +107,7 @@ export default function AdminOrdersPage() {
 
           {/* Filters */}
           <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-4 mb-6 flex flex-wrap gap-3">
-            <div className="flex gap-2 flex-1 min-w-64">
+            <div className="flex gap-2 flex-1 min-w-0 w-full sm:w-auto">
               <input
                 type="text"
                 placeholder="Tìm theo tên, email khách hàng..."
@@ -151,11 +151,11 @@ export default function AdminOrdersPage() {
                   <tr>
                     <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Mã đơn</th>
                     <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Khách hàng</th>
-                    <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Sự kiện</th>
+                    <th className="hidden lg:table-cell text-left text-gray-400 text-xs font-medium px-4 py-3">Sự kiện</th>
                     <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Tổng tiền</th>
                     <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Trạng thái</th>
-                    <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Thanh toán</th>
-                    <th className="text-left text-gray-400 text-xs font-medium px-4 py-3">Ngày đặt</th>
+                    <th className="hidden sm:table-cell text-left text-gray-400 text-xs font-medium px-4 py-3">Thanh toán</th>
+                    <th className="hidden md:table-cell text-left text-gray-400 text-xs font-medium px-4 py-3">Ngày đặt</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -191,7 +191,7 @@ export default function AdminOrdersPage() {
                           <p className="text-white text-sm">{order.customerName}</p>
                           <p className="text-gray-400 text-xs">{order.customerEmail}</p>
                         </td>
-                        <td className="px-4 py-3 text-gray-300 text-sm max-w-48 truncate">
+                        <td className="hidden lg:table-cell px-4 py-3 text-gray-300 text-sm max-w-48 truncate">
                           {order.eventTitle}
                         </td>
                         <td className="px-4 py-3 text-primary font-semibold text-sm whitespace-nowrap">
@@ -206,10 +206,10 @@ export default function AdminOrdersPage() {
                             {ORDER_STATUS_LABELS[order.status] || order.status}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-400 text-xs">
+                        <td className="hidden sm:table-cell px-4 py-3 text-gray-400 text-xs">
                           {PAYMENT_STATUS_LABELS[order.paymentStatus] || order.paymentStatus}
                         </td>
-                        <td className="px-4 py-3 text-gray-400 text-sm whitespace-nowrap">
+                        <td className="hidden md:table-cell px-4 py-3 text-gray-400 text-sm whitespace-nowrap">
                           {formatDate(order.createdDate)}
                         </td>
                       </tr>

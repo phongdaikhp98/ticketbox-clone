@@ -87,7 +87,7 @@ export default function TicketDetailPage() {
             <div className="bg-zinc-800 rounded-lg overflow-hidden">
               {/* Ticket header */}
               <div className="bg-gradient-to-r from-primary/20 to-indigo-500/20 p-6">
-                <div className="flex justify-between items-start">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
                   <div>
                     <h1 className="text-xl font-bold text-white">{ticket.eventTitle}</h1>
                     <p className="text-gray-300 text-sm mt-1">

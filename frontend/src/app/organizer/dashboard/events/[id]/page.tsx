@@ -130,14 +130,14 @@ function EventStatsContent() {
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
       {/* Back link + actions */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <Link href="/organizer/dashboard" className="text-gray-400 hover:text-white text-sm">
           &larr; Quay lại Dashboard
         </Link>
         <button
           onClick={handleDuplicate}
           disabled={duplicating}
-          className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-sm rounded-lg transition disabled:opacity-50"
+          className="px-4 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-sm rounded-lg transition disabled:opacity-50 self-start sm:self-auto"
         >
           {duplicating ? "Đang nhân bản..." : "⧉ Nhân bản sự kiện"}
         </button>
@@ -145,7 +145,7 @@ function EventStatsContent() {
 
       {/* Event Header */}
       <div className="bg-zinc-800 rounded-lg border border-zinc-700 p-6 mb-6">
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-4">
           {stats.event.imageUrl && (
             <img
               src={stats.event.imageUrl}
@@ -286,19 +286,19 @@ function EventStatsContent() {
                 <thead>
                   <tr className="border-b border-zinc-700">
                     <th className="text-left text-gray-400 font-medium px-4 py-3">Họ tên</th>
-                    <th className="text-left text-gray-400 font-medium px-4 py-3">Email</th>
-                    <th className="text-left text-gray-400 font-medium px-4 py-3">Loại vé</th>
+                    <th className="hidden md:table-cell text-left text-gray-400 font-medium px-4 py-3">Email</th>
+                    <th className="hidden sm:table-cell text-left text-gray-400 font-medium px-4 py-3">Loại vé</th>
                     <th className="text-left text-gray-400 font-medium px-4 py-3">Mã vé</th>
                     <th className="text-center text-gray-400 font-medium px-4 py-3">Trạng thái</th>
-                    <th className="text-left text-gray-400 font-medium px-4 py-3">Check-in</th>
+                    <th className="hidden md:table-cell text-left text-gray-400 font-medium px-4 py-3">Check-in</th>
                   </tr>
                 </thead>
                 <tbody>
                   {attendees.content.map((a) => (
                     <tr key={a.ticketId} className="border-b border-zinc-700/50 hover:bg-zinc-700/30">
                       <td className="px-4 py-3 text-white">{a.attendeeName}</td>
-                      <td className="px-4 py-3 text-gray-400">{a.attendeeEmail}</td>
-                      <td className="px-4 py-3 text-gray-300">{a.ticketTypeName}</td>
+                      <td className="hidden md:table-cell px-4 py-3 text-gray-400">{a.attendeeEmail}</td>
+                      <td className="hidden sm:table-cell px-4 py-3 text-gray-300">{a.ticketTypeName}</td>
                       <td className="px-4 py-3 font-mono text-gray-300 text-xs">{a.ticketCode}</td>
                       <td className="px-4 py-3 text-center">
                         <span className={`px-2 py-0.5 rounded text-xs ${
@@ -309,7 +309,7 @@ function EventStatsContent() {
                           {TICKET_STATUS_LABELS[a.status] || a.status}
                         </span>
                       </td>
-                      <td className="px-4 py-3 text-gray-400 text-xs">
+                      <td className="hidden md:table-cell px-4 py-3 text-gray-400 text-xs">
                         {a.usedAt ? formatDate(a.usedAt) : "—"}
                       </td>
                     </tr>

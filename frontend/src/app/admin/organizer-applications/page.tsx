@@ -149,9 +149,9 @@ export default function AdminOrganizerApplicationsPage() {
         <Header />
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Page header */}
-          <div className="mb-6 flex items-center justify-between">
+          <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-white">
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">
                 Đơn đăng ký Organizer
               </h1>
               <p className="text-gray-400 mt-1">

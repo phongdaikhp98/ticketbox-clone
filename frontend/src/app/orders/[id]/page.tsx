@@ -175,7 +175,7 @@ export default function OrderDetailPage() {
                   </span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mb-4">
                   <div>
                     <span className="text-gray-500">Phương thức thanh toán</span>
                     <p className="text-white">
@@ -197,7 +197,7 @@ export default function OrderDetailPage() {
                   {order.orderItems.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center gap-4 p-3 bg-zinc-700 rounded-lg"
+                      className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 bg-zinc-700 rounded-lg"
                     >
                       <Link href={`/events/${item.event.id}`} className="shrink-0">
                         {item.event.imageUrl ? (

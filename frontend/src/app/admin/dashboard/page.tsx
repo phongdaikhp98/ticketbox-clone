@@ -135,9 +135,9 @@ export default function AdminDashboardPage() {
       <div className="min-h-screen bg-secondary">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-white">Quản trị hệ thống</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Quản trị hệ thống</h1>
               <p className="text-gray-400 mt-1">Thống kê tổng quan toàn hệ thống</p>
             </div>
             <Link
@@ -166,13 +166,13 @@ export default function AdminDashboardPage() {
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
                 <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-5">
                   <p className="text-gray-400 text-sm">Tổng người dùng</p>
-                  <p className="text-3xl font-bold text-white mt-1">
+                  <p className="text-2xl sm:text-3xl font-bold text-white mt-1">
                     {overview.totalUsers.toLocaleString("vi-VN")}
                   </p>
                 </div>
                 <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-5">
                   <p className="text-gray-400 text-sm">Tổng sự kiện</p>
-                  <p className="text-3xl font-bold text-white mt-1">
+                  <p className="text-2xl sm:text-3xl font-bold text-white mt-1">
                     {overview.totalEvents.toLocaleString("vi-VN")}
                   </p>
                 </div>
@@ -184,19 +184,19 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-5">
                   <p className="text-gray-400 text-sm">Tổng đơn hàng</p>
-                  <p className="text-3xl font-bold text-white mt-1">
+                  <p className="text-2xl sm:text-3xl font-bold text-white mt-1">
                     {overview.totalOrders.toLocaleString("vi-VN")}
                   </p>
                 </div>
                 <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-5">
                   <p className="text-gray-400 text-sm">Vé đã bán</p>
-                  <p className="text-3xl font-bold text-white mt-1">
+                  <p className="text-2xl sm:text-3xl font-bold text-white mt-1">
                     {overview.totalTicketsSold.toLocaleString("vi-VN")}
                   </p>
                 </div>
                 <div className="bg-zinc-800 border border-zinc-700 rounded-xl p-5">
                   <p className="text-gray-400 text-sm">Đã check-in</p>
-                  <p className="text-3xl font-bold text-white mt-1">
+                  <p className="text-2xl sm:text-3xl font-bold text-white mt-1">
                     {overview.totalCheckedIn.toLocaleString("vi-VN")}
                   </p>
                 </div>
