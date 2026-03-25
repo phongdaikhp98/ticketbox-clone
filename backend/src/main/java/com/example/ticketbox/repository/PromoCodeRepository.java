@@ -21,7 +21,7 @@ public interface PromoCodeRepository extends JpaRepository<PromoCode, Long> {
     @Modifying
     @Transactional
     @Query("UPDATE PromoCode p SET p.usedCount = p.usedCount + 1 " +
-           "WHERE p.id = :id AND (p.maxUsageCount IS NULL OR p.usedCount < p.maxUsageCount)")
+           "WHERE p.id = :id AND (p.usageLimit IS NULL OR p.usedCount < p.usageLimit)")
     int incrementUsedCount(@Param("id") Long id);
 
     @Modifying
