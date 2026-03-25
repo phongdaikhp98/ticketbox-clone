@@ -119,11 +119,9 @@ public class AuthService {
     @Transactional
     public void forgotPassword(String email) {
         User user = userRepository.findByEmail(email).orElse(null);
-        if (user == null) return; // Do not reveal if email exists
-
-        if (user.getProvider() == AuthProvider.GOOGLE) {
-            throw new BadRequestException("Tài khoản này đăng nhập qua Google, không có mật khẩu để đặt lại.");
-        }
+        // [SECURITY] Silent return — không tiết lộ email có tồn tại hay không,
+        // kể cả tài khoản Google (tránh user enumeration qua error message)
+        if (user == null || user.getProvider() == AuthProvider.GOOGLE) return;
 
         String token = UUID.randomUUID().toString();
         redisTemplate.opsForValue().set(PWD_RESET_PREFIX + token, email,
@@ -241,12 +239,13 @@ public class AuthService {
                 throw new BadRequestException("Token Google không hợp lệ: " + tokenInfo.get("error_description"));
             }
 
-            // Validate audience if client ID is configured
-            if (googleClientId != null && !googleClientId.isBlank()) {
-                String aud = (String) tokenInfo.get("aud");
-                if (!googleClientId.equals(aud)) {
-                    throw new BadRequestException("Token Google không đúng ứng dụng.");
-                }
+            // [SECURITY] Luôn validate audience — reject nếu chưa cấu hình GOOGLE_CLIENT_ID
+            if (googleClientId == null || googleClientId.isBlank()) {
+                throw new BadRequestException("Google OAuth chưa được cấu hình trên server.");
+            }
+            String aud = (String) tokenInfo.get("aud");
+            if (!googleClientId.equals(aud)) {
+                throw new BadRequestException("Token Google không đúng ứng dụng.");
             }
 
             return tokenInfo;

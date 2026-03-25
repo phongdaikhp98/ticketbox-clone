@@ -1,0 +1,22 @@
+# ============================================================
+# Production profile — override các giá trị nguy hiểm từ application.yml
+# Kích hoạt bằng: SPRING_PROFILES_ACTIVE=prod
+# ============================================================
+
+spring:
+  jpa:
+    hibernate:
+      # [SECURITY] Không cho Hibernate tự động ALTER/DROP schema trong production
+      # Dùng Flyway/Liquibase hoặc chạy migration thủ công
+      ddl-auto: validate
+    show-sql: false  # [SECURITY] Tắt log SQL để tránh lộ PII trong log files
+    properties:
+      hibernate:
+        format_sql: false
+
+springdoc:
+  # [SECURITY] Ẩn Swagger UI trên production
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false

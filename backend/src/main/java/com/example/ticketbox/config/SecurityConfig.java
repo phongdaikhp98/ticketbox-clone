@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -44,8 +45,9 @@ public class SecurityConfig {
                         .requestMatchers("/v1/auth/register", "/v1/auth/login", "/v1/auth/refresh-token",
                                 "/v1/auth/forgot-password", "/v1/auth/reset-password", "/v1/auth/oauth2/google",
                                 "/v1/auth/verify-email").permitAll()
-                        .requestMatchers("/v1/events/**").permitAll()
-                        .requestMatchers("/v1/categories", "/v1/categories/**").permitAll()
+                        // [SECURITY] Chỉ GET public — POST/PUT/DELETE yêu cầu xác thực
+                        .requestMatchers(HttpMethod.GET, "/v1/events/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/v1/categories", "/v1/categories/**").permitAll()
                         .requestMatchers("/v1/payment/vnpay-ipn").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()

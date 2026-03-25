@@ -26,8 +26,9 @@ spring:
 
   jpa:
     hibernate:
+      # [DEV ONLY] Đổi sang validate khi deploy production (xem application-prod.yml)
       ddl-auto: update
-    show-sql: true
+    show-sql: true  # [DEV ONLY] Tắt trong production
     properties:
       hibernate:
         dialect: org.hibernate.dialect.OracleDialect
