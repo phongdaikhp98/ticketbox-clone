@@ -44,6 +44,7 @@ public class SecurityConfig {
                         .requestMatchers("/v1/auth/register", "/v1/auth/login", "/v1/auth/refresh-token",
                                 "/v1/auth/forgot-password", "/v1/auth/reset-password", "/v1/auth/oauth2/google").permitAll()
                         .requestMatchers("/v1/events/**").permitAll()
+                        .requestMatchers("/v1/categories", "/v1/categories/**").permitAll()
                         .requestMatchers("/v1/payment/vnpay-ipn").permitAll()
                         .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                         .anyRequest().authenticated()

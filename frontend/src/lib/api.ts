@@ -20,8 +20,12 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== "undefined") {
-        localStorage.removeItem("token");
-        window.location.href = "/login";
+        const token = localStorage.getItem("token");
+        // Only redirect to login if user was previously authenticated
+        if (token) {
+          localStorage.removeItem("token");
+          window.location.href = "/login";
+        }
       }
     }
     return Promise.reject(error);
