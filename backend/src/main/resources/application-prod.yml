@@ -20,3 +20,8 @@ springdoc:
     enabled: false
   api-docs:
     enabled: false
+
+app:
+  cors:
+    # [SECURITY] Thay bằng domain thực tế của frontend khi deploy
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:https://ticketbox.example.com}

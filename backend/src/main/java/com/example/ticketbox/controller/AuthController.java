@@ -71,4 +71,10 @@ public class AuthController {
         AuthResponse response = authService.loginWithGoogle(request.getIdToken());
         return ResponseEntity.ok(ApiResponse.success(response));
     }
+
+    @PostMapping("/logout")
+    public ResponseEntity<ApiResponse<Void>> logout(@Valid @RequestBody RefreshTokenRequest request) {
+        authService.logout(request.getRefreshToken());
+        return ResponseEntity.ok(ApiResponse.success("Đăng xuất thành công.", null));
+    }
 }

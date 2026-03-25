@@ -45,8 +45,12 @@ public class AuthService {
     @Value("${app.google.client-id:}")
     private String googleClientId;
 
-    private static final String PWD_RESET_PREFIX    = "pwd_reset:";
-    private static final String EMAIL_VERIFY_PREFIX = "email_verify:";
+    @Value("${app.jwt.refresh-expiration-ms}")
+    private long refreshTokenExpirationMs;
+
+    private static final String PWD_RESET_PREFIX      = "pwd_reset:";
+    private static final String EMAIL_VERIFY_PREFIX   = "email_verify:";
+    private static final String REFRESH_TOKEN_PREFIX  = "refresh_token:";
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -67,6 +71,7 @@ public class AuthService {
 
         String accessToken = jwtUtils.generateAccessToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtUtils.generateRefreshToken(user.getEmail());
+        storeRefreshToken(refreshToken, user.getEmail());
 
         return buildAuthResponse(user, accessToken, refreshToken);
     }
@@ -87,6 +92,7 @@ public class AuthService {
 
         String accessToken = jwtUtils.generateAccessToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtUtils.generateRefreshToken(user.getEmail());
+        storeRefreshToken(refreshToken, user.getEmail());
 
         return buildAuthResponse(user, accessToken, refreshToken);
     }
@@ -98,14 +104,38 @@ public class AuthService {
             throw new BadRequestException("Invalid refresh token");
         }
 
+        // [SECURITY] Kiểm tra jti trong Redis — nếu bị revoke hoặc đã dùng thì từ chối
+        String jti = jwtUtils.getJtiFromToken(token);
+        String storedEmail = redisTemplate.opsForValue().get(REFRESH_TOKEN_PREFIX + jti);
+        if (storedEmail == null) {
+            throw new BadRequestException("Refresh token đã hết hạn hoặc đã bị thu hồi.");
+        }
+
+        // [SECURITY] Xóa token cũ (rotation) để tránh reuse sau khi issue token mới
+        redisTemplate.delete(REFRESH_TOKEN_PREFIX + jti);
+
         String email = jwtUtils.getEmailFromToken(token);
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BadRequestException("User not found"));
 
         String newAccessToken = jwtUtils.generateAccessToken(user.getEmail(), user.getRole().name());
         String newRefreshToken = jwtUtils.generateRefreshToken(user.getEmail());
+        storeRefreshToken(newRefreshToken, user.getEmail());
 
         return buildAuthResponse(user, newAccessToken, newRefreshToken);
+    }
+
+    public void logout(String refreshToken) {
+        try {
+            if (refreshToken != null && jwtUtils.validateToken(refreshToken)
+                    && "REFRESH".equals(jwtUtils.getTokenType(refreshToken))) {
+                String jti = jwtUtils.getJtiFromToken(refreshToken);
+                redisTemplate.delete(REFRESH_TOKEN_PREFIX + jti);
+                log.info("Refresh token revoked (jti={})", jti);
+            }
+        } catch (Exception e) {
+            log.warn("Logout: could not revoke token: {}", e.getMessage());
+        }
     }
 
     public AuthResponse.UserDto getCurrentUser(String email) {
@@ -220,6 +250,7 @@ public class AuthService {
 
         String accessToken = jwtUtils.generateAccessToken(user.getEmail(), user.getRole().name());
         String refreshToken = jwtUtils.generateRefreshToken(user.getEmail());
+        storeRefreshToken(refreshToken, user.getEmail());
         return buildAuthResponse(user, accessToken, refreshToken);
     }
 
@@ -258,6 +289,14 @@ public class AuthService {
     }
 
     // ===================== Helpers =====================
+
+    private void storeRefreshToken(String refreshToken, String email) {
+        String jti = jwtUtils.getJtiFromToken(refreshToken);
+        redisTemplate.opsForValue().set(
+                REFRESH_TOKEN_PREFIX + jti, email,
+                Duration.ofMillis(refreshTokenExpirationMs)
+        );
+    }
 
     private AuthResponse buildAuthResponse(User user, String accessToken, String refreshToken) {
         return AuthResponse.builder()

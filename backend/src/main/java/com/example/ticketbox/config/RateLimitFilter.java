@@ -109,10 +109,17 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return null;
     }
 
+    /**
+     * [SECURITY] Chỉ tin tưởng header X-Forwarded-For khi trustedProxyEnabled = true.
+     * Mặc định (false) luôn dùng RemoteAddr để tránh attacker tự gán IP giả,
+     * bypass rate limit bằng cách truyền X-Forwarded-For tùy ý.
+     */
     private String getClientIp(HttpServletRequest request) {
-        String xff = request.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isEmpty()) {
-            return xff.split(",")[0].trim();
+        if (appProperties.getRateLimit().isTrustedProxyEnabled()) {
+            String xff = request.getHeader("X-Forwarded-For");
+            if (xff != null && !xff.isEmpty()) {
+                return xff.split(",")[0].trim();
+            }
         }
         return request.getRemoteAddr();
     }

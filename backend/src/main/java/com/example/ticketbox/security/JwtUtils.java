@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JwtUtils {
@@ -27,15 +28,17 @@ public class JwtUtils {
     }
 
     public String generateAccessToken(String email, String role) {
-        return buildToken(email, role, accessTokenExpirationMs, "ACCESS");
+        return buildToken(email, role, accessTokenExpirationMs, "ACCESS", UUID.randomUUID().toString());
     }
 
     public String generateRefreshToken(String email) {
-        return buildToken(email, null, refreshTokenExpirationMs, "REFRESH");
+        String jti = UUID.randomUUID().toString();
+        return buildToken(email, null, refreshTokenExpirationMs, "REFRESH", jti);
     }
 
-    private String buildToken(String email, String role, long expirationMs, String tokenType) {
+    private String buildToken(String email, String role, long expirationMs, String tokenType, String jti) {
         JwtBuilder builder = Jwts.builder()
+                .id(jti)
                 .subject(email)
                 .claim("type", tokenType)
                 .issuedAt(new Date())
@@ -47,6 +50,10 @@ public class JwtUtils {
         }
 
         return builder.compact();
+    }
+
+    public String getJtiFromToken(String token) {
+        return parseToken(token).getPayload().getId();
     }
 
     public String getEmailFromToken(String token) {

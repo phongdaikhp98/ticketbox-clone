@@ -2,6 +2,7 @@ package com.example.ticketbox.config;
 
 import com.example.ticketbox.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -25,6 +26,10 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final RateLimitFilter rateLimitFilter;
 
+    // [SECURITY] Đọc từ springdoc.swagger-ui.enabled — mặc định true (dev), false trên prod
+    @Value("${springdoc.swagger-ui.enabled:true}")
+    private boolean swaggerEnabled;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
@@ -41,17 +46,21 @@ public class SecurityConfig {
                 .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/v1/auth/register", "/v1/auth/login", "/v1/auth/refresh-token",
-                                "/v1/auth/forgot-password", "/v1/auth/reset-password", "/v1/auth/oauth2/google",
-                                "/v1/auth/verify-email").permitAll()
+                .authorizeHttpRequests(auth -> {
+                        auth.requestMatchers("/v1/auth/register", "/v1/auth/login", "/v1/auth/refresh-token",
+                                        "/v1/auth/forgot-password", "/v1/auth/reset-password", "/v1/auth/oauth2/google",
+                                        "/v1/auth/verify-email", "/v1/auth/logout").permitAll();
                         // [SECURITY] Chỉ GET public — POST/PUT/DELETE yêu cầu xác thực
-                        .requestMatchers(HttpMethod.GET, "/v1/events/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/v1/categories", "/v1/categories/**").permitAll()
-                        .requestMatchers("/v1/payment/vnpay-ipn").permitAll()
-                        .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
-                        .anyRequest().authenticated()
-                )
+                        auth.requestMatchers(HttpMethod.GET, "/v1/events/**").permitAll();
+                        auth.requestMatchers(HttpMethod.GET, "/v1/categories", "/v1/categories/**").permitAll();
+                        auth.requestMatchers("/v1/payment/vnpay-ipn").permitAll();
+                        // [SECURITY] Swagger chỉ public khi swaggerEnabled = true (dev).
+                        // Production (application-prod.yml) đặt springdoc.swagger-ui.enabled=false
+                        if (swaggerEnabled) {
+                            auth.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll();
+                        }
+                        auth.anyRequest().authenticated();
+                })
                 .addFilterBefore(rateLimitFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

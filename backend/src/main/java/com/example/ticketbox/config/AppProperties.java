@@ -44,6 +44,11 @@ public class AppProperties {
                 "/v1/auth/forgot-password",
                 "/v1/auth/reset-password"
         );
+        /**
+         * [SECURITY] Chỉ bật khi server nằm sau một reverse-proxy tin cậy (nginx, ALB...).
+         * Khi false, getClientIp() bỏ qua X-Forwarded-For để tránh IP spoofing.
+         */
+        private boolean trustedProxyEnabled = false;
     }
 
     @Getter
