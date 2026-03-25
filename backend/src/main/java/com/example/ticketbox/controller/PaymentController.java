@@ -1,6 +1,7 @@
 package com.example.ticketbox.controller;
 
 import com.example.ticketbox.common.ApiResponse;
+import com.example.ticketbox.config.AppProperties;
 import com.example.ticketbox.dto.PaymentUrlResponse;
 import com.example.ticketbox.security.UserDetailsImpl;
 import com.example.ticketbox.service.OrderService;
@@ -18,6 +19,7 @@ import java.util.Map;
 public class PaymentController {
 
     private final OrderService orderService;
+    private final AppProperties appProperties;
 
     @PostMapping("/vnpay/create/{orderId}")
     public ResponseEntity<ApiResponse<PaymentUrlResponse>> createVnPayUrl(
@@ -35,17 +37,24 @@ public class PaymentController {
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * [SECURITY] Read-only endpoint — only checks current order status.
+     * State mutation happens exclusively in the IPN endpoint (Critical #2).
+     */
     @PostMapping("/vnpay/verify-return")
     public ResponseEntity<ApiResponse<Map<String, String>>> verifyReturn(
             @RequestBody Map<String, String> params) {
-        Map<String, String> result = orderService.processVnPayIpn(params);
+        Map<String, String> result = orderService.getOrderStatusByTxnRef(params);
         return ResponseEntity.ok(ApiResponse.success(result));
     }
 
+    // [SECURITY] Only trust X-Forwarded-For when running behind a known proxy (High #7)
     private String getClientIp(HttpServletRequest request) {
-        String xff = request.getHeader("X-Forwarded-For");
-        if (xff != null && !xff.isEmpty()) {
-            return xff.split(",")[0].trim();
+        if (appProperties.getRateLimit().isTrustedProxyEnabled()) {
+            String xff = request.getHeader("X-Forwarded-For");
+            if (xff != null && !xff.isEmpty()) {
+                return xff.split(",")[0].trim();
+            }
         }
         return request.getRemoteAddr();
     }

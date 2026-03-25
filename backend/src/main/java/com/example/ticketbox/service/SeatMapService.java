@@ -87,12 +87,20 @@ public class SeatMapService {
     }
 
     @Transactional
-    public void updateSeatStatus(Long seatId, SeatStatus status) {
+    public void updateSeatStatus(Long seatId, SeatStatus status, Long userId, boolean isAdmin) {
         Seat seat = seatRepository.findById(seatId)
                 .orElseThrow(() -> new ResourceNotFoundException("Seat", seatId));
 
         if (status == SeatStatus.SOLD) {
             throw new BadRequestException("Cannot manually set seat to SOLD");
+        }
+
+        // [SECURITY] Verify caller is the event organizer or admin (High #5)
+        if (!isAdmin) {
+            Long organizerId = seat.getSection().getSeatMap().getEvent().getOrganizer().getId();
+            if (!organizerId.equals(userId)) {
+                throw new BadRequestException("You are not the organizer of this event");
+            }
         }
 
         seat.setStatus(status);

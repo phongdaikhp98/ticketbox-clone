@@ -107,8 +107,8 @@ public class OrderService {
             discountAmount = promoCodeService.calculateDiscount(promoCodeEntity, subtotal);
             totalAmount = subtotal.subtract(discountAmount).max(BigDecimal.ZERO);
             appliedCode = promoCodeEntity.getCode().toUpperCase();
-            promoCodeEntity.setUsedCount(promoCodeEntity.getUsedCount() + 1);
-            promoCodeRepository.save(promoCodeEntity);
+            // [SECURITY] Atomic UPDATE to prevent race condition on concurrent checkouts
+            promoCodeRepository.incrementUsedCount(promoCodeEntity.getId());
         }
 
         order.setOriginalAmount(subtotal);
@@ -168,7 +168,8 @@ public class OrderService {
         String responseCode = params.get("vnp_ResponseCode");
         String transactionNo = params.get("vnp_TransactionNo");
 
-        Order order = orderRepository.findByVnpayTxnRef(txnRef).orElse(null);
+        // [SECURITY] Pessimistic lock prevents duplicate IPN processing (Critical #3)
+        Order order = orderRepository.findByVnpayTxnRefForUpdate(txnRef).orElse(null);
         if (order == null) {
             return Map.of("RspCode", "01", "Message", "Order not found");
         }
@@ -233,6 +234,27 @@ public class OrderService {
         emailService.sendAdminOrderNotification(order.getId());
 
         return Map.of("RspCode", "00", "Message", "Confirm Success");
+    }
+
+    /**
+     * [SECURITY] Read-only: used by verify-return endpoint so the FE can check
+     * final payment status without re-processing the IPN (Critical #2).
+     */
+    public Map<String, String> getOrderStatusByTxnRef(Map<String, String> params) {
+        if (!vnPayService.validateSignature(params)) {
+            return Map.of("RspCode", "97", "Message", "Invalid signature");
+        }
+        String txnRef = params.get("vnp_TxnRef");
+        Order order = orderRepository.findByVnpayTxnRef(txnRef).orElse(null);
+        if (order == null) {
+            return Map.of("RspCode", "01", "Message", "Order not found");
+        }
+        if (order.getPaymentStatus() == PaymentStatus.SUCCESS) {
+            return Map.of("RspCode", "00", "Message", "Payment confirmed", "OrderId", String.valueOf(order.getId()));
+        } else if (order.getPaymentStatus() == PaymentStatus.FAILED) {
+            return Map.of("RspCode", "01", "Message", "Payment failed", "OrderId", String.valueOf(order.getId()));
+        }
+        return Map.of("RspCode", "02", "Message", "Payment pending", "OrderId", String.valueOf(order.getId()));
     }
 
     @Transactional

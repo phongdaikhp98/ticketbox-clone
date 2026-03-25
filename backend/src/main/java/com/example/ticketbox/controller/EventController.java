@@ -61,7 +61,9 @@ public class EventController {
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetailsImpl userDetails,
             @Valid @RequestBody UpdateEventRequest request) {
-        EventResponse event = eventService.updateEvent(id, userDetails.getId(), request);
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        EventResponse event = eventService.updateEvent(id, userDetails.getId(), isAdmin, request);
         return ResponseEntity.ok(ApiResponse.success("Event updated", event));
     }
 
@@ -70,7 +72,9 @@ public class EventController {
     public ResponseEntity<ApiResponse<Void>> deleteEvent(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        eventService.deleteEvent(id, userDetails.getId());
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        eventService.deleteEvent(id, userDetails.getId(), isAdmin);
         return ResponseEntity.ok(ApiResponse.success("Event deleted", null));
     }
 

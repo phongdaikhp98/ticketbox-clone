@@ -112,11 +112,12 @@ public class EventService {
     }
 
     @Transactional
-    public EventResponse updateEvent(Long eventId, Long organizerId, UpdateEventRequest request) {
+    public EventResponse updateEvent(Long eventId, Long organizerId, boolean isAdmin, UpdateEventRequest request) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", eventId));
 
-        if (!event.getOrganizer().getId().equals(organizerId)) {
+        // [SECURITY] Admin can update any event; organizer can only update their own (High #6)
+        if (!isAdmin && !event.getOrganizer().getId().equals(organizerId)) {
             throw new BadRequestException("You are not the owner of this event");
         }
         if (event.getStatus() == EventStatus.CANCELLED) {
@@ -184,11 +185,12 @@ public class EventService {
     }
 
     @Transactional
-    public void deleteEvent(Long eventId, Long organizerId) {
+    public void deleteEvent(Long eventId, Long organizerId, boolean isAdmin) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event", eventId));
 
-        if (!event.getOrganizer().getId().equals(organizerId)) {
+        // [SECURITY] Admin can delete any event; organizer can only delete their own (High #6)
+        if (!isAdmin && !event.getOrganizer().getId().equals(organizerId)) {
             throw new BadRequestException("You are not the owner of this event");
         }
         if (event.getStatus() != EventStatus.DRAFT) {

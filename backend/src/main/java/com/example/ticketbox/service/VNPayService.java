@@ -138,8 +138,9 @@ public class VNPayService {
             return new VNPayRefundResult(responseCode, message);
 
         } catch (Exception e) {
-            log.error("VNPay refund API call failed for txnRef={}: {}", txnRef, e.getMessage());
-            return new VNPayRefundResult("99", "Không thể kết nối tới cổng thanh toán: " + e.getMessage());
+            // [SECURITY] Log full error internally, return generic message to caller (High #8)
+            log.error("VNPay refund API call failed for txnRef={}", txnRef, e);
+            return new VNPayRefundResult("99", "Không thể kết nối tới cổng thanh toán. Vui lòng thử lại sau.");
         }
     }
 

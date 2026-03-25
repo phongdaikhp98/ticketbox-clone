@@ -50,12 +50,16 @@ public class SeatMapController {
     public ResponseEntity<ApiResponse<Void>> updateSeatStatus(
             @PathVariable Long seatMapId,
             @PathVariable Long seatId,
-            @Valid @RequestBody UpdateSeatStatusRequest request) {
+            @Valid @RequestBody UpdateSeatStatusRequest request,
+            @AuthenticationPrincipal UserDetails userDetails) {
         if (request.getStatus() == SeatStatus.SOLD) {
             return ResponseEntity.badRequest()
                     .body(ApiResponse.error("400", "Cannot manually set seat to SOLD"));
         }
-        seatMapService.updateSeatStatus(seatId, request.getStatus());
+        Long userId = getUserId(userDetails);
+        boolean isAdmin = userDetails.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        seatMapService.updateSeatStatus(seatId, request.getStatus(), userId, isAdmin);
         return ResponseEntity.ok(ApiResponse.success("Seat status updated", null));
     }
 
