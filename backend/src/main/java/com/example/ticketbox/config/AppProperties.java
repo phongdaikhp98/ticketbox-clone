@@ -25,6 +25,7 @@ public class AppProperties {
     private Order order = new Order();
     private Refund refund = new Refund();
     private Dashboard dashboard = new Dashboard();
+    private Export export = new Export();
 
     @Getter
     @Setter
@@ -72,6 +73,8 @@ public class AppProperties {
     public static class Seat {
         /** How long (seconds) a seat reservation is held in Redis before expiring. */
         private long reservationTtlSeconds = 600;
+        /** [SECURITY] Max seats a single user may hold in Redis at one time (M1 seat-squatting). */
+        private int maxReservationsPerUser = 10;
     }
 
     @Getter
@@ -106,5 +109,12 @@ public class AppProperties {
         private int recentOrdersSize = 10;
         /** Number of top events shown in the overview panel. */
         private int topEventsSize = 5;
+    }
+
+    @Getter
+    @Setter
+    public static class Export {
+        /** [SECURITY] Hard cap on rows per export file — prevents OOM on large datasets (H3). */
+        private int maxRecords = 10000;
     }
 }

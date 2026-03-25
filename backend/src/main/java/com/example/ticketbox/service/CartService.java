@@ -29,6 +29,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class CartService {
 
+    // [SECURITY] Prevent resource exhaustion via oversized carts (M2)
+    private static final int MAX_CART_ITEMS = 20;
+
     private final CartItemRepository cartItemRepository;
     private final TicketTypeRepository ticketTypeRepository;
     private final UserRepository userRepository;
@@ -56,6 +59,10 @@ public class CartService {
 
     @Transactional
     public CartItemResponse addToCart(Long userId, AddToCartRequest request) {
+        if (cartItemRepository.countByUserId(userId) >= MAX_CART_ITEMS) {
+            throw new BadRequestException("Giỏ hàng tối đa " + MAX_CART_ITEMS + " sản phẩm");
+        }
+
         TicketType ticketType = ticketTypeRepository.findById(request.getTicketTypeId())
                 .orElseThrow(() -> new ResourceNotFoundException("TicketType", request.getTicketTypeId()));
 
@@ -104,6 +111,10 @@ public class CartService {
 
     @Transactional
     public CartItemResponse addSeatToCart(Long userId, AddSeatToCartRequest request) {
+        if (cartItemRepository.countByUserId(userId) >= MAX_CART_ITEMS) {
+            throw new BadRequestException("Giỏ hàng tối đa " + MAX_CART_ITEMS + " sản phẩm");
+        }
+
         Seat seat = seatRepository.findById(request.getSeatId())
                 .orElseThrow(() -> new ResourceNotFoundException("Seat", request.getSeatId()));
 

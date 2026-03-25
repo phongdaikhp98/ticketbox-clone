@@ -21,4 +21,6 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     Optional<CartItem> findByUserIdAndSeatId(Long userId, Long seatId);
 
     boolean existsByUserIdAndSeatId(Long userId, Long seatId);
+
+    int countByUserId(Long userId);
 }

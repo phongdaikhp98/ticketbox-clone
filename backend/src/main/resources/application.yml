@@ -107,6 +107,7 @@ app:
 
   seat:
     reservation-ttl-seconds: 600
+    max-reservations-per-user: 10
 
   reminder:
     cron: "0 0 */23 * * *"
@@ -122,3 +123,6 @@ app:
   dashboard:
     recent-orders-size: 10
     top-events-size: 5
+
+  export:
+    max-records: 10000

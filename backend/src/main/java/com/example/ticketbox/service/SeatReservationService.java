@@ -1,14 +1,17 @@
 package com.example.ticketbox.service;
 
 import com.example.ticketbox.config.AppProperties;
+import com.example.ticketbox.exception.BadRequestException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisCallback;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +31,12 @@ public class SeatReservationService {
      * Uses SET NX EX — atomic, returns false if already reserved/sold.
      */
     public boolean reserveSeat(Long seatId, Long userId) {
+        // [SECURITY] Limit reservations per user to prevent seat-squatting (M1)
+        int maxReservations = appProperties.getSeat().getMaxReservationsPerUser();
+        if (getReservationCountByUser(userId) >= maxReservations) {
+            throw new BadRequestException(
+                    "Bạn đang giữ tối đa " + maxReservations + " ghế. Vui lòng hủy bớt trước khi chọn thêm.");
+        }
         Boolean result = redisTemplate.opsForValue()
                 .setIfAbsent(key(seatId), String.valueOf(userId),
                         Duration.ofSeconds(appProperties.getSeat().getReservationTtlSeconds()));
@@ -43,18 +52,51 @@ public class SeatReservationService {
 
     /**
      * Release all reservations held by a user.
-     * Uses SCAN to find matching keys (safe for production).
+     * [SECURITY] Uses non-blocking SCAN iterator — replaces KEYS * which blocks Redis (H2).
      */
     public void releaseUserSeats(Long userId) {
         String userIdStr = String.valueOf(userId);
-        Set<String> keys = redisTemplate.keys(KEY_PREFIX + "*");
-        if (keys == null) return;
-        for (String k : keys) {
-            String reserved = redisTemplate.opsForValue().get(k);
-            if (userIdStr.equals(reserved)) {
-                redisTemplate.delete(k);
+        List<String> userKeys = scanKeysOwnedByUser(userIdStr);
+        if (!userKeys.isEmpty()) {
+            redisTemplate.delete(userKeys);
+        }
+    }
+
+    /**
+     * Count how many seats the user currently holds in Redis.
+     * Uses non-blocking SCAN (H2/M1).
+     */
+    public int getReservationCountByUser(Long userId) {
+        return scanKeysOwnedByUser(String.valueOf(userId)).size();
+    }
+
+    /**
+     * SCAN all seat:reservation:* keys and return those whose value matches userId.
+     * Non-blocking O(N) with small COUNT batches — safe for production.
+     */
+    private List<String> scanKeysOwnedByUser(String userIdStr) {
+        // Step 1: collect all matching keys via SCAN (non-blocking)
+        List<String> allKeys = new ArrayList<>();
+        redisTemplate.execute((RedisCallback<Void>) conn -> {
+            try (var cursor = conn.scan(
+                    ScanOptions.scanOptions().match(KEY_PREFIX + "*").count(100).build())) {
+                cursor.forEachRemaining(k -> allKeys.add(new String(k, StandardCharsets.UTF_8)));
+            }
+            return null;
+        });
+        if (allKeys.isEmpty()) return allKeys;
+
+        // Step 2: batch GET values and filter by userId
+        List<String> values = redisTemplate.opsForValue().multiGet(allKeys);
+        List<String> ownedKeys = new ArrayList<>();
+        if (values != null) {
+            for (int i = 0; i < allKeys.size(); i++) {
+                if (userIdStr.equals(values.get(i))) {
+                    ownedKeys.add(allKeys.get(i));
+                }
             }
         }
+        return ownedKeys;
     }
 
     /**

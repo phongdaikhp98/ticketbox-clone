@@ -13,6 +13,8 @@ import com.example.ticketbox.service.AuditLogService;
 import com.example.ticketbox.service.ExportService;
 import com.example.ticketbox.service.RefundService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,8 +25,10 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+@Validated
 @RestController
 @RequestMapping("/v1/admin")
 @RequiredArgsConstructor
@@ -116,7 +120,7 @@ public class AdminController {
     @PatchMapping("/events/{id}/featured-order")
     public ResponseEntity<ApiResponse<AdminEventResponse>> setFeaturedOrder(
             @PathVariable Long id,
-            @RequestParam Integer order,
+            @RequestParam @Min(0) @Max(9999) Integer order, // [SECURITY] Bounds validation (M4)
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
         return ResponseEntity.ok(ApiResponse.success(
                 adminService.setFeaturedOrder(userDetails.getId(), id, order)));

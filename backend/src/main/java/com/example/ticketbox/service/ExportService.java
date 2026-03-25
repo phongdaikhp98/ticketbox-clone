@@ -1,7 +1,7 @@
 package com.example.ticketbox.service;
 
+import com.example.ticketbox.config.AppProperties;
 import com.example.ticketbox.model.Order;
-import com.example.ticketbox.model.OrderStatus;
 import com.example.ticketbox.model.User;
 import com.example.ticketbox.repository.OrderItemRepository;
 import com.example.ticketbox.repository.OrderRepository;
@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +29,7 @@ public class ExportService {
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
     private final OrderItemRepository orderItemRepository;
+    private final AppProperties appProperties;
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
     private static final String[] ORDER_HEADERS = {
@@ -42,7 +44,10 @@ public class ExportService {
     };
 
     public byte[] exportOrders() {
-        List<Order> orders = orderRepository.findAll(Sort.by(Sort.Direction.DESC, "createdDate"));
+        // [SECURITY] Hard cap — prevents OOM when dataset is large (H3)
+        int limit = appProperties.getExport().getMaxRecords();
+        List<Order> orders = orderRepository.findAll(
+                PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdDate"))).getContent();
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
             Sheet sheet = wb.createSheet("Đơn hàng");
             CellStyle headerStyle = createHeaderStyle(wb);
@@ -73,7 +78,10 @@ public class ExportService {
     }
 
     public byte[] exportUsers() {
-        List<User> users = userRepository.findAll(Sort.by(Sort.Direction.DESC, "createdDate"));
+        // [SECURITY] Hard cap — prevents OOM when dataset is large (H3)
+        int limit = appProperties.getExport().getMaxRecords();
+        List<User> users = userRepository.findAll(
+                PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "createdDate"))).getContent();
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
             Sheet sheet = wb.createSheet("Người dùng");
             CellStyle headerStyle = createHeaderStyle(wb);
@@ -101,9 +109,10 @@ public class ExportService {
     }
 
     public byte[] exportRevenue() {
-        // Use existing aggregate query — fetch all (large page)
+        // [SECURITY] Hard cap — prevents OOM when dataset is large (H3)
+        int limit = appProperties.getExport().getMaxRecords();
         List<Object[]> rows = orderItemRepository.findTopEventsByRevenue(
-                org.springframework.data.domain.PageRequest.of(0, Integer.MAX_VALUE));
+                PageRequest.of(0, limit));
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
             Sheet sheet = wb.createSheet("Doanh thu");
             CellStyle headerStyle = createHeaderStyle(wb);

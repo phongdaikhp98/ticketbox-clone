@@ -58,12 +58,14 @@ public class TicketTransferService {
     public TicketTransferResponse getByToken(String token) {
         TicketTransfer transfer = transferRepository.findByTransferToken(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Transfer not found"));
-        return toResponse(transfer);
+        // [SECURITY] Mask PII — caller is not necessarily the owner (L1)
+        return toPublicResponse(transfer);
     }
 
     @Transactional
     public TicketTransferResponse acceptTransfer(String token, Long acceptingUserId) {
-        TicketTransfer transfer = transferRepository.findByTransferToken(token)
+        // [SECURITY] Pessimistic lock prevents concurrent accept+cancel race condition (H1)
+        TicketTransfer transfer = transferRepository.findByTransferTokenForUpdate(token)
                 .orElseThrow(() -> new ResourceNotFoundException("Transfer not found"));
 
         if (transfer.getStatus() != TicketTransferStatus.PENDING) {
@@ -96,7 +98,8 @@ public class TicketTransferService {
 
     @Transactional
     public void cancelTransfer(Long transferId, Long userId) {
-        TicketTransfer transfer = transferRepository.findById(transferId)
+        // [SECURITY] Pessimistic lock prevents concurrent accept+cancel race condition (H1)
+        TicketTransfer transfer = transferRepository.findByIdForUpdate(transferId)
                 .orElseThrow(() -> new ResourceNotFoundException("Transfer", transferId));
 
         if (!transfer.getFromUser().getId().equals(userId)) {
@@ -136,5 +139,36 @@ public class TicketTransferService {
                 .completedAt(t.getCompletedAt())
                 .createdDate(t.getCreatedDate())
                 .build();
+    }
+
+    /** [SECURITY] Public view — masks sender email to prevent PII leak to non-owners (L1) */
+    private TicketTransferResponse toPublicResponse(TicketTransfer t) {
+        Ticket ticket = t.getTicket();
+        return TicketTransferResponse.builder()
+                .id(t.getId())
+                .ticketId(ticket.getId())
+                .ticketCode(ticket.getTicketCode())
+                .eventTitle(ticket.getEvent().getTitle())
+                .eventDate(ticket.getEvent().getEventDate().toString())
+                .fromUserName(t.getFromUser().getFullName())
+                .fromUserEmail(maskEmail(t.getFromUser().getEmail()))
+                .toEmail(maskEmail(t.getToEmail()))
+                .toUserName(t.getToUser() != null ? t.getToUser().getFullName() : null)
+                .transferToken(t.getTransferToken())
+                .status(t.getStatus().name())
+                .expiresAt(t.getExpiresAt())
+                .completedAt(t.getCompletedAt())
+                .createdDate(t.getCreatedDate())
+                .build();
+    }
+
+    /** Masks an email address: john.doe@gmail.com → j***@gmail.com */
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) return email;
+        int atIdx = email.indexOf('@');
+        String local = email.substring(0, atIdx);
+        String domain = email.substring(atIdx);
+        if (local.length() <= 1) return local + "***" + domain;
+        return local.charAt(0) + "***" + domain;
     }
 }

@@ -112,7 +112,8 @@ public class AdminService {
         try {
             role = Role.valueOf(newRole.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("Invalid role: " + newRole);
+            // [SECURITY] Không echo input vào error message (L3)
+            throw new BadRequestException("Vai trò không hợp lệ. Chỉ chấp nhận: CUSTOMER, ORGANIZER");
         }
 
         if (role == Role.ADMIN) {
