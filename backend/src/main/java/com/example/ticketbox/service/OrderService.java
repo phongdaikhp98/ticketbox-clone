@@ -107,8 +107,12 @@ public class OrderService {
             discountAmount = promoCodeService.calculateDiscount(promoCodeEntity, subtotal);
             totalAmount = subtotal.subtract(discountAmount).max(BigDecimal.ZERO);
             appliedCode = promoCodeEntity.getCode().toUpperCase();
-            // [SECURITY] Atomic UPDATE to prevent race condition on concurrent checkouts
-            promoCodeRepository.incrementUsedCount(promoCodeEntity.getId());
+            // [SECURITY] Conditional atomic UPDATE — only increments if still below limit (M3).
+            // Returns 0 if another concurrent checkout already consumed the last slot.
+            int updated = promoCodeRepository.incrementUsedCount(promoCodeEntity.getId());
+            if (updated == 0) {
+                throw new BadRequestException("Mã giảm giá đã hết lượt sử dụng");
+            }
         }
 
         order.setOriginalAmount(subtotal);

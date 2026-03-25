@@ -7,6 +7,8 @@ import com.example.ticketbox.exception.ResourceNotFoundException;
 import com.example.ticketbox.model.*;
 import com.example.ticketbox.repository.EventRepository;
 import com.example.ticketbox.repository.TicketRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -19,7 +21,9 @@ import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +33,7 @@ public class TicketService {
     private final EventRepository eventRepository;
     private final QrCodeService qrCodeService;
     private final AuditLogService auditLogService;
+    private final ObjectMapper objectMapper;
 
     private static final SecureRandom RANDOM = new SecureRandom();
     private static final String CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -94,8 +99,10 @@ public class TicketService {
 
     @Transactional
     public CheckInResponse checkIn(String ticketCode, Long organizerId) {
-        Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
-                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with code: " + ticketCode));
+        // [SECURITY] Pessimistic lock prevents two concurrent check-ins from
+        // both reading ISSUED and both marking the ticket USED (H1)
+        Ticket ticket = ticketRepository.findByTicketCodeForUpdate(ticketCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
 
         // Verify organizer owns this event (or is ADMIN)
         Event event = ticket.getEvent();
@@ -159,8 +166,9 @@ public class TicketService {
     // Allow ADMIN to check-in without organizer validation
     @Transactional
     public CheckInResponse checkInAsAdmin(String ticketCode, Long adminId) {
-        Ticket ticket = ticketRepository.findByTicketCode(ticketCode)
-                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with code: " + ticketCode));
+        // [SECURITY] Same pessimistic lock as checkIn() — prevents race on admin path (H1)
+        Ticket ticket = ticketRepository.findByTicketCodeForUpdate(ticketCode)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
 
         Event event = ticket.getEvent();
 
@@ -214,8 +222,21 @@ public class TicketService {
         return code.toString();
     }
 
+    /**
+     * [SECURITY] Use Jackson ObjectMapper instead of string concatenation to build
+     * QR JSON — prevents any future JSON injection if ticketCode source ever changes (L1).
+     */
     private String buildQrData(String ticketCode, Long eventId, Long userId) {
-        return "{\"code\":\"" + ticketCode + "\",\"eventId\":" + eventId + ",\"userId\":" + userId + "}";
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("code", ticketCode);
+        data.put("eventId", eventId);
+        data.put("userId", userId);
+        try {
+            return objectMapper.writeValueAsString(data);
+        } catch (JsonProcessingException e) {
+            // Should never happen with simple String/Long values
+            throw new IllegalStateException("Failed to serialize QR data", e);
+        }
     }
 
     private TicketResponse toTicketResponse(Ticket ticket) {

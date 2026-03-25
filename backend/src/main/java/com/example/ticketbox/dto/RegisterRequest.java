@@ -13,7 +13,8 @@ public class RegisterRequest {
     private String email;
 
     @NotBlank(message = "Password is required")
-    @Size(min = 6, max = 100, message = "Password must be between 6 and 100 characters")
+    // [SECURITY] Min 8 characters per NIST SP 800-63B — consistent with ChangePasswordRequest (M1)
+    @Size(min = 8, max = 100, message = "Mật khẩu phải có từ 8 đến 100 ký tự")
     private String password;
 
     @NotBlank(message = "Full name is required")

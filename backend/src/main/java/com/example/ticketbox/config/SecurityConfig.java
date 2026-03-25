@@ -46,6 +46,16 @@ public class SecurityConfig {
                 .cors(cors -> {})
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // [SECURITY] HTTP Strict Transport Security — tells browsers to only use HTTPS
+                // for this domain for the next year (M2). includeSubDomains covers all subdomains.
+                // Note: HSTS is only sent over HTTPS; browsers ignore it on plain HTTP responses.
+                .headers(headers -> headers
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                                .preload(false)
+                        )
+                )
                 .authorizeHttpRequests(auth -> {
                         auth.requestMatchers("/v1/auth/register", "/v1/auth/login", "/v1/auth/refresh-token",
                                         "/v1/auth/forgot-password", "/v1/auth/reset-password", "/v1/auth/oauth2/google",

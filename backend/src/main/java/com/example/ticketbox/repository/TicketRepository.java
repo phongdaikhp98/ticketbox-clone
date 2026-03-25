@@ -2,10 +2,14 @@ package com.example.ticketbox.repository;
 
 import com.example.ticketbox.model.Ticket;
 import com.example.ticketbox.model.TicketStatus;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -15,6 +19,16 @@ import java.util.Optional;
 
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
+
+    /**
+     * [SECURITY] Pessimistic write lock for check-in — prevents double check-in
+     * when two concurrent requests arrive for the same ticket code (H1).
+     * Lock timeout 3 s to avoid indefinite blocking.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000"))
+    @Query("SELECT t FROM Ticket t WHERE t.ticketCode = :code")
+    Optional<Ticket> findByTicketCodeForUpdate(@Param("code") String code);
 
     Page<Ticket> findByUserId(Long userId, Pageable pageable);
 

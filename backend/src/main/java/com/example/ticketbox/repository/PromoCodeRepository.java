@@ -12,10 +12,17 @@ import java.util.Optional;
 public interface PromoCodeRepository extends JpaRepository<PromoCode, Long> {
     Optional<PromoCode> findByCodeIgnoreCase(String code);
 
+    /**
+     * [SECURITY] Conditional atomic increment — only increments when usedCount is
+     * still below maxUsageCount (or no limit set), preventing TOCTOU race between
+     * validation-read and increment-write when two checkouts arrive simultaneously (M3).
+     * Returns rows affected: 0 means the promo was already at capacity.
+     */
     @Modifying
     @Transactional
-    @Query("UPDATE PromoCode p SET p.usedCount = p.usedCount + 1 WHERE p.id = :id")
-    void incrementUsedCount(@Param("id") Long id);
+    @Query("UPDATE PromoCode p SET p.usedCount = p.usedCount + 1 " +
+           "WHERE p.id = :id AND (p.maxUsageCount IS NULL OR p.usedCount < p.maxUsageCount)")
+    int incrementUsedCount(@Param("id") Long id);
 
     @Modifying
     @Transactional

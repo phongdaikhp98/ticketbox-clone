@@ -75,8 +75,9 @@ public class SeatReservationController {
     }
 
     private Long getUserId(UserDetails userDetails) {
+        // [SECURITY] Do not echo username into exception message (L3)
         return userRepository.findByEmail(userDetails.getUsername())
-                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userDetails.getUsername()))
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"))
                 .getId();
     }
 }
