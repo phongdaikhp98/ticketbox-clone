@@ -10,6 +10,21 @@ import { CartResponse } from "@/types/cart";
 import { ValidatePromoCodeResponse } from "@/types/order";
 import { useCart } from "@/contexts/CartContext";
 
+// [SECURITY] Whitelist of trusted VNPay hostnames — prevents open redirect if
+// the payment URL is ever tampered with (MITM or compromised API response) (H2).
+const ALLOWED_PAYMENT_HOSTS = ["sandbox.vnpayment.vn", "vnpayment.vn"];
+
+function isSafePaymentUrl(url: string): boolean {
+  try {
+    const { hostname } = new URL(url);
+    return ALLOWED_PAYMENT_HOSTS.some(
+      (h) => hostname === h || hostname.endsWith("." + h)
+    );
+  } catch {
+    return false;
+  }
+}
+
 const PAYMENT_OPTIONS = [
   {
     id: "E_WALLET",
@@ -121,6 +136,11 @@ export default function CheckoutPage() {
 
       // Create VNPay payment URL and redirect
       const payment = await orderService.createPaymentUrl(order.id);
+      // [SECURITY] Validate domain before redirect to prevent open redirect (H2)
+      if (!isSafePaymentUrl(payment.paymentUrl)) {
+        setError("URL thanh toán không hợp lệ. Vui lòng thử lại.");
+        return;
+      }
       window.location.href = payment.paymentUrl;
     } catch (err: unknown) {
       const msg =

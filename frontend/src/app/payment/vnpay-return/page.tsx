@@ -27,8 +27,10 @@ function VNPayReturnContent() {
         setStatus(result.RspCode === "00" ? "success" : "failed");
       })
       .catch(() => {
-        const responseCode = params["vnp_ResponseCode"];
-        setStatus(responseCode === "00" ? "success" : "failed");
+        // [SECURITY] Never fall back to client-supplied query params to determine
+        // payment status. An attacker can craft a URL with vnp_ResponseCode=00
+        // to display a fake success screen. Backend is always authoritative (M1).
+        setStatus("failed");
       });
   }, [searchParams]);
 

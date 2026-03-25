@@ -15,12 +15,24 @@ function VerifyEmailContent() {
 
   useEffect(() => {
     if (!token) return;
+
+    // [SECURITY] Basic format/length validation before sending token to backend (M2).
+    // Accepts URL-safe characters and common base64 variants; rejects oversized strings.
+    const isValidTokenFormat = (t: string) =>
+      t.length >= 8 && t.length <= 512 && /^[\w\-=.+/]+$/.test(t);
+
+    if (!isValidTokenFormat(token)) {
+      setStatus("no-token");
+      return;
+    }
+
     authService
       .verifyEmail(token)
       .then(() => setStatus("success"))
-      .catch((err: any) => {
+      .catch((err: unknown) => {
+        const apiError = err as { response?: { data?: { message?: string } } };
         setErrorMsg(
-          err.response?.data?.message || "Link xác thực không hợp lệ hoặc đã hết hạn."
+          apiError.response?.data?.message || "Link xác thực không hợp lệ hoặc đã hết hạn."
         );
         setStatus("error");
       });
