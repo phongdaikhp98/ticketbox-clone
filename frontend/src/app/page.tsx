@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import FeaturedEventsCarousel from "@/components/FeaturedEventsCarousel";
 import EventCard from "@/components/EventCard";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,7 +22,6 @@ export default function Home() {
           <OrganizerCTA />
         </div>
       </main>
-      <Footer />
     </div>
   );
 }
