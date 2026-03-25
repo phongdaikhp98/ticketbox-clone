@@ -123,6 +123,7 @@ app:
   dashboard:
     recent-orders-size: 10
     top-events-size: 5
+    max-audit-page-size: 200
 
   export:
     max-records: 10000

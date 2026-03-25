@@ -109,6 +109,8 @@ public class AppProperties {
         private int recentOrdersSize = 10;
         /** Number of top events shown in the overview panel. */
         private int topEventsSize = 5;
+        /** [SECURITY] Max page size for audit log API — prevents response explosion (A1). */
+        private int maxAuditPageSize = 200;
     }
 
     @Getter

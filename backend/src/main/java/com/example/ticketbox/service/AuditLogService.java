@@ -1,5 +1,6 @@
 package com.example.ticketbox.service;
 
+import com.example.ticketbox.config.AppProperties;
 import com.example.ticketbox.dto.AuditLogResponse;
 import com.example.ticketbox.model.AuditLog;
 import com.example.ticketbox.model.User;
@@ -18,6 +19,7 @@ public class AuditLogService {
 
     private final AuditLogRepository auditLogRepository;
     private final UserRepository userRepository;
+    private final AppProperties appProperties;
 
     public void log(Long adminId, String action, String entityType, Long entityId,
                     String entityName, String oldValue, String newValue) {
@@ -43,7 +45,9 @@ public class AuditLogService {
     }
 
     public Page<AuditLogResponse> getLogs(String entityType, String action, int page, int size) {
-        PageRequest pageable = PageRequest.of(page, size);
+        // [SECURITY] Cap page size to prevent response explosion / OOM (A1)
+        int cappedSize = Math.min(size, appProperties.getDashboard().getMaxAuditPageSize());
+        PageRequest pageable = PageRequest.of(page, cappedSize);
         boolean hasEntityType = entityType != null && !entityType.isBlank();
         boolean hasAction = action != null && !action.isBlank();
 
