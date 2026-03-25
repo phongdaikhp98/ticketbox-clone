@@ -97,6 +97,7 @@ app:
       - /v1/auth/register
       - /v1/auth/forgot-password
       - /v1/auth/reset-password
+      - /v1/users/change-password
 
   upload:
     max-file-size-mb: 5

@@ -11,7 +11,7 @@ public class ChangePasswordRequest {
     private String currentPassword;
 
     @NotBlank(message = "New password is required")
-    @Size(min = 6, message = "New password must be at least 6 characters")
+    @Size(min = 8, message = "Mật khẩu mới phải có ít nhất 8 ký tự")
     private String newPassword;
 
     @NotBlank(message = "Confirm password is required")

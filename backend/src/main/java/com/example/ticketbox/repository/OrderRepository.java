@@ -29,6 +29,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM Order o WHERE o.vnpayTxnRef = :txnRef")
     Optional<Order> findByVnpayTxnRefForUpdate(@Param("txnRef") String txnRef);
 
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000"))
+    @Query("SELECT o FROM Order o WHERE o.id = :id AND o.user.id = :userId")
+    Optional<Order> findByIdAndUserIdForUpdate(@Param("id") Long id, @Param("userId") Long userId);
+
     @Query("SELECT DISTINCT o FROM Order o JOIN o.orderItems oi " +
            "WHERE o.status = 'COMPLETED' AND oi.event.organizer.id = :organizerId " +
            "ORDER BY o.createdDate DESC")

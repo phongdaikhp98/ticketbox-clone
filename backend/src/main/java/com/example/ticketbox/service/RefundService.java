@@ -37,7 +37,8 @@ public class RefundService {
 
     @Transactional
     public RefundResponse requestRefund(Long userId, Long orderId, String clientIp) {
-        Order order = orderRepository.findByIdAndUserId(orderId, userId)
+        // [SECURITY] Pessimistic lock prevents concurrent double-refund for the same order (Critical)
+        Order order = orderRepository.findByIdAndUserIdForUpdate(orderId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
 
         // Validate order is paid and completed
@@ -141,11 +142,10 @@ public class RefundService {
         }
 
         // 4. Decrement promo code usage if applicable
+        // [SECURITY] Atomic UPDATE prevents race condition on concurrent refunds (M1)
         if (order.getPromoCode() != null) {
-            promoCodeRepository.findByCodeIgnoreCase(order.getPromoCode()).ifPresent(promo -> {
-                promo.setUsedCount(Math.max(0, promo.getUsedCount() - 1));
-                promoCodeRepository.save(promo);
-            });
+            promoCodeRepository.findByCodeIgnoreCase(order.getPromoCode())
+                    .ifPresent(promo -> promoCodeRepository.decrementUsedCount(promo.getId()));
             promoCodeUsageRepository.findByOrderId(order.getId())
                     .ifPresent(promoCodeUsageRepository::delete);
         }

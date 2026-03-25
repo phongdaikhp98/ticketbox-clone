@@ -1,6 +1,7 @@
 package com.example.ticketbox.controller;
 
 import com.example.ticketbox.common.ApiResponse;
+import com.example.ticketbox.config.AppProperties;
 import com.example.ticketbox.dto.CheckoutRequest;
 import com.example.ticketbox.dto.OrderResponse;
 import com.example.ticketbox.dto.RefundResponse;
@@ -23,6 +24,7 @@ public class OrderController {
 
     private final OrderService orderService;
     private final RefundService refundService;
+    private final AppProperties appProperties;
 
     @PostMapping("/checkout")
     public ResponseEntity<ApiResponse<OrderResponse>> checkout(
@@ -76,10 +78,13 @@ public class OrderController {
                 .orElse(ResponseEntity.ok(ApiResponse.success(null)));
     }
 
+    // [SECURITY] Only trust X-Forwarded-For when running behind a known proxy (H1)
     private String getClientIp(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
+        if (appProperties.getRateLimit().isTrustedProxyEnabled()) {
+            String forwarded = request.getHeader("X-Forwarded-For");
+            if (forwarded != null && !forwarded.isBlank()) {
+                return forwarded.split(",")[0].trim();
+            }
         }
         String ip = request.getRemoteAddr();
         // Normalize IPv6 localhost to IPv4 — VNPay expects IPv4 format

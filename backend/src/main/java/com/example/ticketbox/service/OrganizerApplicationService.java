@@ -45,6 +45,12 @@ public class OrganizerApplicationService {
             throw new BadRequestException("Bạn đã có đơn đang chờ duyệt");
         }
 
+        // [SECURITY] Cooldown 24h sau khi bị từ chối — tránh spam resubmission (L2)
+        LocalDateTime cooldownSince = LocalDateTime.now().minusHours(24);
+        if (organizerApplicationRepository.existsRecentRejectionByUserId(userId, cooldownSince)) {
+            throw new BadRequestException("Đơn vừa bị từ chối. Vui lòng đợi 24 giờ trước khi nộp lại.");
+        }
+
         OrganizerApplication application = OrganizerApplication.builder()
                 .user(user)
                 .orgName(request.getOrgName())

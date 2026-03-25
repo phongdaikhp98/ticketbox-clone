@@ -13,9 +13,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
+
+    // [SECURITY] Whitelist trusted domains for avatarUrl — prevents XSS / SSRF (H2)
+    private static final List<String> TRUSTED_AVATAR_PREFIXES = List.of(
+            "https://res.cloudinary.com/",       // Cloudinary uploads
+            "https://lh3.googleusercontent.com/" // Google OAuth profile photos
+    );
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -35,6 +43,10 @@ public class UserService {
             user.setAddress(request.getAddress());
         }
         if (request.getAvatarUrl() != null) {
+            if (!request.getAvatarUrl().isEmpty() && TRUSTED_AVATAR_PREFIXES.stream()
+                    .noneMatch(request.getAvatarUrl()::startsWith)) {
+                throw new BadRequestException("Avatar URL không hợp lệ. Vui lòng upload ảnh qua hệ thống.");
+            }
             user.setAvatarUrl(request.getAvatarUrl());
         }
 

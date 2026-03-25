@@ -22,7 +22,7 @@ public class OrganizerApplicationController {
     private final OrganizerApplicationService organizerApplicationService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('CUSTOMER','ORGANIZER','ADMIN')")
+    @PreAuthorize("hasRole('CUSTOMER')") // [SECURITY] Chỉ CUSTOMER mới được nộp đơn (L1)
     public ResponseEntity<ApiResponse<OrganizerApplicationResponse>> submit(
             @Valid @RequestBody OrganizerApplicationRequest request,
             @AuthenticationPrincipal UserDetailsImpl userDetails) {
