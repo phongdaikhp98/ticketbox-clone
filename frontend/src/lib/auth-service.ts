@@ -34,4 +34,12 @@ export const authService = {
     const res = await api.post<ApiResponse<AuthResponse>>("/v1/auth/oauth2/google", { idToken });
     return res.data.data;
   },
+
+  async sendVerificationEmail(): Promise<void> {
+    await api.post("/v1/auth/send-verification");
+  },
+
+  async verifyEmail(token: string): Promise<void> {
+    await api.post(`/v1/auth/verify-email?token=${encodeURIComponent(token)}`);
+  },
 };

@@ -54,6 +54,18 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.success("Mật khẩu đã được đặt lại thành công.", null));
     }
 
+    @PostMapping("/send-verification")
+    public ResponseEntity<ApiResponse<Void>> sendVerification(@AuthenticationPrincipal UserDetailsImpl userDetails) {
+        authService.sendVerificationEmail(userDetails.getEmail());
+        return ResponseEntity.ok(ApiResponse.success("Email xác thực đã được gửi.", null));
+    }
+
+    @PostMapping("/verify-email")
+    public ResponseEntity<ApiResponse<Void>> verifyEmail(@RequestParam String token) {
+        authService.verifyEmail(token);
+        return ResponseEntity.ok(ApiResponse.success("Email đã được xác thực thành công.", null));
+    }
+
     @PostMapping("/oauth2/google")
     public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
         AuthResponse response = authService.loginWithGoogle(request.getIdToken());

@@ -42,7 +42,8 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/v1/auth/register", "/v1/auth/login", "/v1/auth/refresh-token",
-                                "/v1/auth/forgot-password", "/v1/auth/reset-password", "/v1/auth/oauth2/google").permitAll()
+                                "/v1/auth/forgot-password", "/v1/auth/reset-password", "/v1/auth/oauth2/google",
+                                "/v1/auth/verify-email").permitAll()
                         .requestMatchers("/v1/events/**").permitAll()
                         .requestMatchers("/v1/categories", "/v1/categories/**").permitAll()
                         .requestMatchers("/v1/payment/vnpay-ipn").permitAll()

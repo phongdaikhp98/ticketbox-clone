@@ -58,6 +58,8 @@ public class AppProperties {
     public static class Auth {
         /** How long (minutes) a password-reset token stays valid in Redis. */
         private long passwordResetTtlMinutes = 15;
+        /** How long (minutes) an email-verification token stays valid in Redis. */
+        private long emailVerifyTtlMinutes = 60;
     }
 
     @Getter

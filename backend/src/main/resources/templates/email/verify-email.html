@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xác thực email</title>
+</head>
+<body style="margin:0;padding:0;background-color:#18181b;font-family:'Segoe UI',Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background-color:#18181b;padding:40px 16px;">
+  <tr>
+    <td align="center">
+      <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
+
+        <!-- Header -->
+        <tr>
+          <td style="padding-bottom:24px;text-align:center;">
+            <span style="font-size:28px;font-weight:700;color:#16a34a;">Ticketbox</span>
+          </td>
+        </tr>
+
+        <!-- Card -->
+        <tr>
+          <td style="background-color:#27272a;border-radius:12px;padding:36px 32px;">
+
+            <p style="margin:0 0 8px;font-size:22px;font-weight:700;color:#f4f4f5;">✉️ Xác thực địa chỉ email</p>
+            <p style="margin:0 0 24px;font-size:15px;color:#a1a1aa;">
+              Xin chào <strong th:text="${userName}" style="color:#e4e4e7;">bạn</strong>,
+            </p>
+            <p style="margin:0 0 24px;font-size:15px;color:#a1a1aa;line-height:1.6;">
+              Cảm ơn bạn đã đăng ký tài khoản Ticketbox. Nhấn vào nút bên dưới để xác thực địa chỉ email của bạn.
+              Link có hiệu lực trong <strong th:text="${expireMinutes}" style="color:#e4e4e7;">60</strong> phút.
+            </p>
+
+            <!-- CTA Button -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="margin:28px 0;">
+              <tr>
+                <td align="center">
+                  <a th:href="${verifyUrl}"
+                     style="display:inline-block;background-color:#16a34a;color:#ffffff;text-decoration:none;
+                            font-size:15px;font-weight:600;padding:14px 32px;border-radius:8px;">
+                    ✅ Xác thực email ngay
+                  </a>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Fallback URL -->
+            <p style="margin:0 0 8px;font-size:13px;color:#71717a;">
+              Nếu nút không hoạt động, copy link sau vào trình duyệt:
+            </p>
+            <p style="margin:0 0 24px;font-size:12px;color:#16a34a;word-break:break-all;" th:text="${verifyUrl}"></p>
+
+            <!-- Warning -->
+            <div style="background-color:#3f3f46;border-left:4px solid #3b82f6;border-radius:4px;padding:12px 16px;margin-bottom:16px;">
+              <p style="margin:0;font-size:13px;color:#93c5fd;">
+                ℹ️ Nếu bạn không đăng ký tài khoản này, hãy bỏ qua email này.
+              </p>
+            </div>
+
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="padding-top:24px;text-align:center;">
+            <p style="margin:0;font-size:12px;color:#52525b;">
+              © 2026 Ticketbox · Email tự động, vui lòng không trả lời.
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>

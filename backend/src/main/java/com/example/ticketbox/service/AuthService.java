@@ -45,7 +45,8 @@ public class AuthService {
     @Value("${app.google.client-id:}")
     private String googleClientId;
 
-    private static final String PWD_RESET_PREFIX = "pwd_reset:";
+    private static final String PWD_RESET_PREFIX    = "pwd_reset:";
+    private static final String EMAIL_VERIFY_PREFIX = "email_verify:";
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -147,6 +148,45 @@ public class AuthService {
         userRepository.save(user);
         redisTemplate.delete(PWD_RESET_PREFIX + token);
         log.info("Password reset successfully for {}", email);
+    }
+
+    // ===================== Email Verification =====================
+
+    @Transactional
+    public void sendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("User not found"));
+
+        if (Boolean.TRUE.equals(user.getEmailVerified())) {
+            throw new BadRequestException("Email đã được xác thực.");
+        }
+        if (user.getProvider() == AuthProvider.GOOGLE) {
+            throw new BadRequestException("Tài khoản Google không cần xác thực email.");
+        }
+
+        String token = UUID.randomUUID().toString();
+        redisTemplate.opsForValue().set(EMAIL_VERIFY_PREFIX + token, email,
+                Duration.ofMinutes(appProperties.getAuth().getEmailVerifyTtlMinutes()));
+
+        String verifyUrl = frontendUrl + "/verify-email?token=" + token;
+        emailService.sendEmailVerificationEmail(email, user.getFullName(), verifyUrl);
+        log.info("Email verification token issued for {}", email);
+    }
+
+    @Transactional
+    public void verifyEmail(String token) {
+        String email = redisTemplate.opsForValue().get(EMAIL_VERIFY_PREFIX + token);
+        if (email == null) {
+            throw new BadRequestException("Link xác thực không hợp lệ hoặc đã hết hạn.");
+        }
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BadRequestException("User not found"));
+
+        user.setEmailVerified(true);
+        userRepository.save(user);
+        redisTemplate.delete(EMAIL_VERIFY_PREFIX + token);
+        log.info("Email verified successfully for {}", email);
     }
 
     // ===================== Google OAuth =====================

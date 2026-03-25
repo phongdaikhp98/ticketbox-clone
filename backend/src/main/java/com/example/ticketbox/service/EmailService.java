@@ -215,6 +215,23 @@ public class EmailService {
     }
 
     @Async("emailExecutor")
+    public void sendEmailVerificationEmail(String email, String name, String verifyUrl) {
+        try {
+            Context ctx = new Context();
+            ctx.setVariable("userName", name);
+            ctx.setVariable("verifyUrl", verifyUrl);
+            ctx.setVariable("expireMinutes", 60);
+
+            String html = templateEngine.process("email/verify-email", ctx);
+            String subject = "✉️ Xác thực email Ticketbox";
+            sendHtmlEmail(email, subject, html);
+            log.info("Email verification sent to {}", email);
+        } catch (Exception e) {
+            log.warn("Failed to send email verification to {}: {}", email, e.getMessage());
+        }
+    }
+
+    @Async("emailExecutor")
     @Transactional(readOnly = true)
     public void sendRefundSuccessEmail(Long orderId) {
         try {

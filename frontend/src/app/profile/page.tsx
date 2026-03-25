@@ -7,6 +7,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ImageUpload from "@/components/ImageUpload";
 import { useAuth } from "@/contexts/AuthContext";
 import { userService } from "@/lib/user-service";
+import { authService } from "@/lib/auth-service";
 import { ChangePasswordRequest, UpdateProfileRequest } from "@/types/auth";
 
 export default function ProfilePage() {
@@ -149,9 +150,63 @@ function ProfileForm() {
         </form>
       </div>
 
+      {/* Email Verification — chỉ hiện với tài khoản LOCAL chưa xác thực */}
+      {!user.emailVerified && user.role !== "OAUTH2" && <EmailVerificationSection />}
+
       {/* Change Password — chỉ hiện với tài khoản đăng ký email */}
       {user.role !== "OAUTH2" && <ChangePasswordSection />}
     </main>
+  );
+}
+
+function EmailVerificationSection() {
+  const [loading, setLoading] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleSend = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      await authService.sendVerificationEmail();
+      setSent(true);
+    } catch (err: unknown) {
+      const e = err as { response?: { data?: { message?: string } } };
+      setError(e.response?.data?.message || "Không thể gửi email, vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-5 mt-6">
+      <div className="flex items-start gap-3">
+        <span className="text-yellow-400 text-xl mt-0.5">⚠️</span>
+        <div className="flex-1 min-w-0">
+          <h3 className="text-yellow-300 font-semibold text-sm">Email chưa được xác thực</h3>
+          <p className="text-yellow-200/70 text-xs mt-1">
+            Xác thực email để bảo vệ tài khoản và nhận thông báo quan trọng.
+          </p>
+
+          {sent ? (
+            <p className="text-green-400 text-xs mt-2">
+              ✅ Email xác thực đã được gửi! Kiểm tra hộp thư (kể cả Spam).
+            </p>
+          ) : (
+            <>
+              {error && <p className="text-red-400 text-xs mt-2">{error}</p>}
+              <button
+                onClick={handleSend}
+                disabled={loading}
+                className="mt-3 px-4 py-1.5 bg-yellow-500 hover:bg-yellow-400 text-black text-xs font-semibold rounded-lg transition disabled:opacity-50"
+              >
+                {loading ? "Đang gửi..." : "Gửi email xác thực"}
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 
